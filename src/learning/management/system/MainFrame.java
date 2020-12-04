@@ -30,7 +30,7 @@ import javax.swing.table.TableRowSorter;
 
 /**
  *
- * @author Haider Qazi
+ * @author Haider Qazi, Daniel Gasperini, Javier Blanco, David Dinh, Christian Francois
  */
 public class MainFrame extends javax.swing.JFrame {
     int mouseposX;
