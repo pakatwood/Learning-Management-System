@@ -30,8 +30,7 @@ import javax.swing.table.TableRowSorter;
 
 /**
  *
- * @author Haider Qazi (Chief Programmer), Daniel Gasperini (Backup Programmer), Javier Blanco (Programmer), David Dinh (Programmer), Christian Francois (Programming Secretary) test test (DAVID WAS HERE)
- * Test
+ * @author Haider Qazi (Chief Programmer), Daniel Gasperini (Backup Programmer), Javier Blanco (Programmer), David Dinh (Programmer), Christian Francois (Programming Secretary)
  * 
  */
 public class MainFrame extends javax.swing.JFrame {
