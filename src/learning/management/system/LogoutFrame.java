@@ -15,7 +15,7 @@ import javax.swing.JPanel;
 
 /**
  *
- * @author Haider Qazi
+ * @author Haider Qazi, Daniel Gasperini, Javier Blanco, David Dinh, Christian Francois
  */
 public class LogoutFrame extends javax.swing.JFrame {
 

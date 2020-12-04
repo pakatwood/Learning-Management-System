@@ -7,7 +7,7 @@ package learning.management.system;
 
 /**
  *
- * @author Haider Qazi
+ * @author Haider Qazi, Daniel Gasperini, Javier Blanco, David Dinh, Christian Francois
  */
 public class StudentsList {
     public String Student_ID, First_Name, Last_Name, Student_Status, Residency_Status, Class_Standing, Location, Major, Phone_Number, Email_Address;

@@ -35,7 +35,7 @@ import static learning.management.system.MainFrame.Admin_SC_Name_Label;
 import static learning.management.system.MainFrame.Admin_SC_Discription_Label;
 /**
  *
- * @author Haider Qazi
+ * @author Haider Qazi, Daniel Gasperini, Javier Blanco, David Dinh, Christian Francois
  */
 public class LoginFrame extends javax.swing.JFrame {
     Connection conn = null;

@@ -7,7 +7,7 @@ package learning.management.system;
 
 /**
  *
- * @author Haider Qazi
+ * @author Haider Qazi, Daniel Gasperini, Javier Blanco, David Dinh, Christian Francois
  */
 public class GPA {
     public String Course_No, Course_Description, Grade, Units;

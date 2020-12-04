@@ -7,7 +7,7 @@ package learning.management.system;
 
 /**
  *
- * @author Haider Qazi
+ * @author Haider Qazi, Daniel Gasperini, Javier Blanco, David Dinh, Christian Francois
  */
 public class StudentRegisteredCourses {
     public String Class_ID, Course_No, Course_Description, Room_No, Instructor_Name, Days_Time, Start_Date, End_Date;

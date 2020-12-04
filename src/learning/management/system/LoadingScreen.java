@@ -9,7 +9,7 @@ import java.awt.Color;
 
 /**
  *
- * @author Haider Qazi
+ * @author Haider Qazi, Daniel Gasperini, Javier Blanco, David Dinh, Christian Francois
  */
 public class LoadingScreen extends javax.swing.JFrame {
 
