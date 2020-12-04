@@ -7,7 +7,7 @@ package learning.management.system;
 
 /**
  *
- * @author Haider Qazi, Daniel Gasperini, Javier Blanco, David Dinh, Christian Francois
+ * @author Haider Qazi (Chief Programmer), Daniel Gasperini (Backup Programmer), Javier Blanco (Programmer), David Dinh (Programmer), Christian Francois (Programming Secretary)
  */
 public class ExamGrades {
     public String Exam_Name, Exam_Weight, Score_Recieved;

@@ -13,6 +13,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
+import static learning.management.system.MainFrame.Admin_AECG_Discription_Label;
+import static learning.management.system.MainFrame.Admin_AECG_Name_Label;
 import static learning.management.system.MainFrame.Admin_Discription_Label;
 import static learning.management.system.MainFrame.Admin_MC_Discription_Label;
 import static learning.management.system.MainFrame.Admin_MC_Name_Label;
@@ -35,7 +37,7 @@ import static learning.management.system.MainFrame.Admin_SC_Name_Label;
 import static learning.management.system.MainFrame.Admin_SC_Discription_Label;
 /**
  *
- * @author Haider Qazi, Daniel Gasperini, Javier Blanco, David Dinh, Christian Francois
+ * @author Haider Qazi (Chief Programmer), Daniel Gasperini (Backup Programmer), Javier Blanco (Programmer), David Dinh (Programmer), Christian Francois (Programming Secretary)
  */
 public class LoginFrame extends javax.swing.JFrame {
     Connection conn = null;
@@ -86,6 +88,8 @@ public class LoginFrame extends javax.swing.JFrame {
                 Admin_MS_Discription_Label.setText("Administrator" + " | " + "University of Houston");
                 Admin_SC_Name_Label.setText(rs.getString(2) + " " + rs.getString(3));
                 Admin_SC_Discription_Label.setText("Administrator" + " | " + "University of Houston");
+                Admin_AECG_Name_Label.setText(rs.getString(2) + " " + rs.getString(3));
+                Admin_AECG_Discription_Label.setText("Administrator" + " | " + "University of Houston");
                 rs.close();
             }
             else{
