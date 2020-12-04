@@ -72,7 +72,7 @@ public class LoadingScreen extends javax.swing.JFrame {
         Team_Members_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
         Team_Members_Label.setForeground(new java.awt.Color(255, 255, 255));
         Team_Members_Label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        Team_Members_Label.setText("Haider Qazi, Daniel Gasperini, Javier Blanco, David Dinh, Colem Burgess");
+        Team_Members_Label.setText("Haider Qazi, Daniel Gasperini, Javier Blanco, David Dinh, Christian Francois");
         Description_Panel.add(Team_Members_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 110, 630, 30));
 
         Loading_Screeen_Panel.add(Description_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 230, 630, 150));
