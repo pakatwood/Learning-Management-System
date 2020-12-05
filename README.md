@@ -1,4 +1,4 @@
-# Software-Engineering-Project
+# Software Engineering Project
 
 The following is a Capstone project creating a Learning Management System.
 The Learning management system showcases two different views, an Admin (Administrator) veiw and a User veiw (Student).
