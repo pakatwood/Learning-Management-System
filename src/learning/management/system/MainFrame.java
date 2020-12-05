@@ -581,18 +581,6 @@ public class MainFrame extends javax.swing.JFrame {
         AECG_Logout_Button_Icon = new javax.swing.JLabel();
         AECG_Logout_Button_Label = new javax.swing.JLabel();
         Admin_AECG_Right_Panel = new javax.swing.JPanel();
-        SC_Student_Information_Panel1 = new javax.swing.JPanel();
-        SC_Student_Information_Heading_Label1 = new javax.swing.JLabel();
-        SC_Student_ID_Heading_Label1 = new javax.swing.JLabel();
-        SC_Student_Name_Heading_Label1 = new javax.swing.JLabel();
-        SC_Student_Status_Heading_Label1 = new javax.swing.JLabel();
-        SC_Residency_Status_Heading_Label1 = new javax.swing.JLabel();
-        SC_Class_Standing_Heading_Label1 = new javax.swing.JLabel();
-        SC_Location_Heading_Label1 = new javax.swing.JLabel();
-        SC_Major_Heading_Label1 = new javax.swing.JLabel();
-        SC_Contact_Label1 = new javax.swing.JLabel();
-        SC_Phone_Number_Heading_Label1 = new javax.swing.JLabel();
-        SC_Email_Heading_Label1 = new javax.swing.JLabel();
         SC_Assign_Courses_Panel1 = new javax.swing.JPanel();
         AECG_Assign_Exam_Grades_Header_Label = new javax.swing.JLabel();
         SC_Current_Students_Panel1 = new javax.swing.JPanel();
@@ -603,6 +591,11 @@ public class MainFrame extends javax.swing.JFrame {
         SC_Search_Student_Field1 = new javax.swing.JTextField();
         SC_Current_Students_Table_ScrollPane1 = new javax.swing.JScrollPane();
         SC_Current_Students_Table1 = new javax.swing.JTable();
+        jComboBox3 = new javax.swing.JComboBox<>();
+        jComboBox4 = new javax.swing.JComboBox<>();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
+        jButton2 = new javax.swing.JButton();
         SC_Assign_Courses_Panel2 = new javax.swing.JPanel();
         AECG_Assign_Exam_Grades_Header_Label1 = new javax.swing.JLabel();
         Admin_MS_Panel = new javax.swing.JPanel();
@@ -1201,91 +1194,6 @@ public class MainFrame extends javax.swing.JFrame {
         Admin_AECG_Right_Panel.setBackground(new java.awt.Color(242, 242, 242));
         Admin_AECG_Right_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        SC_Student_Information_Panel1.setBackground(new java.awt.Color(255, 255, 255));
-        SC_Student_Information_Panel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        SC_Student_Information_Heading_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
-        SC_Student_Information_Heading_Label1.setText("Student Information");
-        SC_Student_Information_Panel1.add(SC_Student_Information_Heading_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 310, 30));
-
-        SC_Student_ID_Heading_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Student_ID_Heading_Label1.setText("Student ID");
-        SC_Student_Information_Panel1.add(SC_Student_ID_Heading_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 45, 80, 20));
-
-        SC_Student_ID_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Student_ID_Label1.setForeground(new java.awt.Color(102, 102, 102));
-        SC_Student_Information_Panel1.add(SC_Student_ID_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 45, 140, 20));
-
-        SC_Student_Name_Heading_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Student_Name_Heading_Label1.setText("Student Name");
-        SC_Student_Information_Panel1.add(SC_Student_Name_Heading_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 75, 100, 20));
-
-        SC_Student_Name_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Student_Name_Label1.setForeground(new java.awt.Color(102, 102, 102));
-        SC_Student_Information_Panel1.add(SC_Student_Name_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 75, 140, 20));
-
-        SC_Student_Status_Heading_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Student_Status_Heading_Label1.setText("Student Status");
-        SC_Student_Information_Panel1.add(SC_Student_Status_Heading_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 105, 100, 20));
-
-        SC_Student_Status_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Student_Status_Label1.setForeground(new java.awt.Color(102, 102, 102));
-        SC_Student_Information_Panel1.add(SC_Student_Status_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 105, 140, 20));
-
-        SC_Residency_Status_Heading_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Residency_Status_Heading_Label1.setText("Residency Status");
-        SC_Student_Information_Panel1.add(SC_Residency_Status_Heading_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 135, 110, 20));
-
-        SC_Residency_Status_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Residency_Status_Label1.setForeground(new java.awt.Color(102, 102, 102));
-        SC_Student_Information_Panel1.add(SC_Residency_Status_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 135, 140, 20));
-
-        SC_Class_Standing_Heading_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Class_Standing_Heading_Label1.setText("Class Standing");
-        SC_Student_Information_Panel1.add(SC_Class_Standing_Heading_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 165, 110, 20));
-
-        SC_Class_Standing_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Class_Standing_Label1.setForeground(new java.awt.Color(102, 102, 102));
-        SC_Student_Information_Panel1.add(SC_Class_Standing_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 165, 140, 20));
-
-        SC_Location_Heading_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Location_Heading_Label1.setText("Location");
-        SC_Student_Information_Panel1.add(SC_Location_Heading_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 195, 110, 20));
-
-        SC_Location_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Location_Label1.setForeground(new java.awt.Color(102, 102, 102));
-        SC_Student_Information_Panel1.add(SC_Location_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 195, 140, 20));
-
-        SC_Major_Heading_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Major_Heading_Label1.setText("Major");
-        SC_Student_Information_Panel1.add(SC_Major_Heading_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 225, 110, 20));
-
-        SC_Major_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Major_Label1.setForeground(new java.awt.Color(102, 102, 102));
-        SC_Student_Information_Panel1.add(SC_Major_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 225, 140, 20));
-
-        SC_Contact_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
-        SC_Contact_Label1.setText("Contact");
-        SC_Student_Information_Panel1.add(SC_Contact_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 255, 280, 30));
-
-        SC_Phone_Number_Heading_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Phone_Number_Heading_Label1.setText("Phone Number");
-        SC_Student_Information_Panel1.add(SC_Phone_Number_Heading_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 290, 100, 20));
-
-        SC_Phone_Number_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Phone_Number_Label1.setForeground(new java.awt.Color(102, 102, 102));
-        SC_Student_Information_Panel1.add(SC_Phone_Number_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 290, 140, 20));
-
-        SC_Email_Heading_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Email_Heading_Label1.setText("E-Mail");
-        SC_Student_Information_Panel1.add(SC_Email_Heading_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 320, 100, 20));
-
-        SC_Email_Address_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SC_Email_Address_Label1.setForeground(new java.awt.Color(102, 102, 102));
-        SC_Student_Information_Panel1.add(SC_Email_Address_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 320, 140, 20));
-
-        Admin_AECG_Right_Panel.add(SC_Student_Information_Panel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 340, 350));
-
         SC_Assign_Courses_Panel1.setBackground(new java.awt.Color(255, 255, 255));
         SC_Assign_Courses_Panel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -1293,14 +1201,14 @@ public class MainFrame extends javax.swing.JFrame {
         AECG_Assign_Exam_Grades_Header_Label.setText("Assign Course Grade");
         SC_Assign_Courses_Panel1.add(AECG_Assign_Exam_Grades_Header_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 210, 30));
 
-        Admin_AECG_Right_Panel.add(SC_Assign_Courses_Panel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 370, 485, 320));
+        Admin_AECG_Right_Panel.add(SC_Assign_Courses_Panel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 355, 485, 335));
 
         SC_Current_Students_Panel1.setBackground(new java.awt.Color(255, 255, 255));
         SC_Current_Students_Panel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         SC_Current_Students_Table_Heading_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
-        SC_Current_Students_Table_Heading_Label1.setText("Current Students");
-        SC_Current_Students_Panel1.add(SC_Current_Students_Table_Heading_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 310, 30));
+        SC_Current_Students_Table_Heading_Label1.setText("Select Instructor & Course");
+        SC_Current_Students_Panel1.add(SC_Current_Students_Table_Heading_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 230, 30));
 
         SC_Search_Button_Panel1.setBackground(new java.awt.Color(255, 255, 255));
         SC_Search_Button_Panel1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
@@ -1309,13 +1217,13 @@ public class MainFrame extends javax.swing.JFrame {
         SC_Search_Button_Icon1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Search_Icon_20x20.png"))); // NOI18N
         SC_Search_Button_Panel1.add(SC_Search_Button_Icon1, new org.netbeans.lib.awtextra.AbsoluteConstraints(5, 0, 25, 33));
 
-        SC_Current_Students_Panel1.add(SC_Search_Button_Panel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 11, 30, 33));
+        SC_Current_Students_Panel1.add(SC_Search_Button_Panel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(887, 11, 30, 33));
 
         SC_Search_Placeholder_Field1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 25)); // NOI18N
         SC_Search_Placeholder_Field1.setForeground(new java.awt.Color(153, 153, 153));
         SC_Search_Placeholder_Field1.setText("Search Student");
         SC_Search_Placeholder_Field1.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
-        SC_Current_Students_Panel1.add(SC_Search_Placeholder_Field1, new org.netbeans.lib.awtextra.AbsoluteConstraints(210, 10, 190, 30));
+        SC_Current_Students_Panel1.add(SC_Search_Placeholder_Field1, new org.netbeans.lib.awtextra.AbsoluteConstraints(702, 12, 190, 30));
 
         SC_Search_Student_Field1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
         SC_Search_Student_Field1.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), javax.swing.BorderFactory.createEmptyBorder(0, 10, 1, 1)));
@@ -1332,7 +1240,7 @@ public class MainFrame extends javax.swing.JFrame {
                 SC_Search_Student_Field1KeyTyped(evt);
             }
         });
-        SC_Current_Students_Panel1.add(SC_Search_Student_Field1, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 10, 230, 35));
+        SC_Current_Students_Panel1.add(SC_Search_Student_Field1, new org.netbeans.lib.awtextra.AbsoluteConstraints(692, 10, 230, 35));
 
         SC_Current_Students_Table1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
         SC_Current_Students_Table1.setModel(new javax.swing.table.DefaultTableModel(
@@ -1359,9 +1267,32 @@ public class MainFrame extends javax.swing.JFrame {
         });
         SC_Current_Students_Table_ScrollPane1.setViewportView(SC_Current_Students_Table1);
 
-        SC_Current_Students_Panel1.add(SC_Current_Students_Table_ScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 50, 420, 260));
+        SC_Current_Students_Panel1.add(SC_Current_Students_Table_ScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(355, 55, 570, 270));
 
-        Admin_AECG_Right_Panel.add(SC_Current_Students_Panel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 370, 440, 320));
+        jComboBox3.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        jComboBox3.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "MATH 3302" }));
+        SC_Current_Students_Panel1.add(jComboBox3, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 170, 170, 30));
+
+        jComboBox4.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        jComboBox4.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Cesar Arturo Garza" }));
+        SC_Current_Students_Panel1.add(jComboBox4, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 105, 170, 30));
+
+        jLabel2.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel2.setText("INSTRUCTOR:");
+        SC_Current_Students_Panel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 100, 120, 40));
+
+        jLabel1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel1.setText("COURSE:");
+        SC_Current_Students_Panel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 165, 120, 40));
+
+        jButton2.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        jButton2.setText("SHOW");
+        jButton2.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        SC_Current_Students_Panel1.add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 240, -1, -1));
+
+        Admin_AECG_Right_Panel.add(SC_Current_Students_Panel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 935, 335));
 
         SC_Assign_Courses_Panel2.setBackground(new java.awt.Color(255, 255, 255));
         SC_Assign_Courses_Panel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -1370,7 +1301,7 @@ public class MainFrame extends javax.swing.JFrame {
         AECG_Assign_Exam_Grades_Header_Label1.setText("Assign Exam Grade");
         SC_Assign_Courses_Panel2.add(AECG_Assign_Exam_Grades_Header_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 210, 30));
 
-        Admin_AECG_Right_Panel.add(SC_Assign_Courses_Panel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 10, 585, 350));
+        Admin_AECG_Right_Panel.add(SC_Assign_Courses_Panel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 355, 440, 335));
 
         Admin_AECG_Panel.add(Admin_AECG_Right_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 0, 955, 700));
 
@@ -4876,11 +4807,8 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPanel SC_Assign_Withdraw_Courses_Panel;
     private javax.swing.JPanel SC_Button_Panel;
     private javax.swing.JLabel SC_Class_Standing_Heading_Label;
-    private javax.swing.JLabel SC_Class_Standing_Heading_Label1;
     public static final javax.swing.JLabel SC_Class_Standing_Label = new javax.swing.JLabel();
-    public static final javax.swing.JLabel SC_Class_Standing_Label1 = new javax.swing.JLabel();
     private javax.swing.JLabel SC_Contact_Label;
-    private javax.swing.JLabel SC_Contact_Label1;
     private javax.swing.JScrollPane SC_Courses_Table_ScrollPane;
     private javax.swing.JScrollPane SC_Courses_Table_ScrollPane1;
     private javax.swing.JTable SC_Current_Courses_Table;
@@ -4893,17 +4821,13 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane SC_Current_Students_Table_ScrollPane;
     private javax.swing.JScrollPane SC_Current_Students_Table_ScrollPane1;
     public static final javax.swing.JLabel SC_Email_Address_Label = new javax.swing.JLabel();
-    public static final javax.swing.JLabel SC_Email_Address_Label1 = new javax.swing.JLabel();
     private javax.swing.JLabel SC_Email_Heading_Label;
-    private javax.swing.JLabel SC_Email_Heading_Label1;
     private javax.swing.JLabel SC_Hide_Student_Current_Courses_Label;
     private javax.swing.JLabel SC_Home_Button_Icon;
     private javax.swing.JLabel SC_Home_Button_Label;
     private javax.swing.JPanel SC_Home_Button_Panel;
     private javax.swing.JLabel SC_Location_Heading_Label;
-    private javax.swing.JLabel SC_Location_Heading_Label1;
     public static final javax.swing.JLabel SC_Location_Label = new javax.swing.JLabel();
-    public static final javax.swing.JLabel SC_Location_Label1 = new javax.swing.JLabel();
     private javax.swing.JLabel SC_Logout_Button_Icon;
     private javax.swing.JLabel SC_Logout_Button_Label;
     private javax.swing.JLabel SC_MC_Button_Icon;
@@ -4913,18 +4837,12 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel SC_MS_Button_Label;
     private javax.swing.JPanel SC_MS_Button_Panel;
     private javax.swing.JLabel SC_Major_Heading_Label;
-    private javax.swing.JLabel SC_Major_Heading_Label1;
     public static final javax.swing.JLabel SC_Major_Label = new javax.swing.JLabel();
-    public static final javax.swing.JLabel SC_Major_Label1 = new javax.swing.JLabel();
     private javax.swing.JLabel SC_Phone_Number_Heading_Label;
-    private javax.swing.JLabel SC_Phone_Number_Heading_Label1;
     public static final javax.swing.JLabel SC_Phone_Number_Label = new javax.swing.JLabel();
-    public static final javax.swing.JLabel SC_Phone_Number_Label1 = new javax.swing.JLabel();
     private javax.swing.JPanel SC_Registered_Courses_Panel;
     private javax.swing.JLabel SC_Residency_Status_Heading_Label;
-    private javax.swing.JLabel SC_Residency_Status_Heading_Label1;
     public static final javax.swing.JLabel SC_Residency_Status_Label = new javax.swing.JLabel();
-    public static final javax.swing.JLabel SC_Residency_Status_Label1 = new javax.swing.JLabel();
     private javax.swing.JLabel SC_SC_Button_Icon;
     private javax.swing.JLabel SC_SC_Button_Label;
     private javax.swing.JPanel SC_SC_Button_Panel;
@@ -4949,21 +4867,13 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel SC_Show_Student_Current_Courses_Label;
     private javax.swing.JTable SC_Student_Courses_Table;
     private javax.swing.JLabel SC_Student_ID_Heading_Label;
-    private javax.swing.JLabel SC_Student_ID_Heading_Label1;
     public static final javax.swing.JLabel SC_Student_ID_Label = new javax.swing.JLabel();
-    public static final javax.swing.JLabel SC_Student_ID_Label1 = new javax.swing.JLabel();
     private javax.swing.JLabel SC_Student_Information_Heading_Label;
-    private javax.swing.JLabel SC_Student_Information_Heading_Label1;
     private javax.swing.JPanel SC_Student_Information_Panel;
-    private javax.swing.JPanel SC_Student_Information_Panel1;
     private javax.swing.JLabel SC_Student_Name_Heading_Label;
-    private javax.swing.JLabel SC_Student_Name_Heading_Label1;
     public static final javax.swing.JLabel SC_Student_Name_Label = new javax.swing.JLabel();
-    public static final javax.swing.JLabel SC_Student_Name_Label1 = new javax.swing.JLabel();
     private javax.swing.JLabel SC_Student_Status_Heading_Label;
-    private javax.swing.JLabel SC_Student_Status_Heading_Label1;
     public static final javax.swing.JLabel SC_Student_Status_Label = new javax.swing.JLabel();
-    public static final javax.swing.JLabel SC_Student_Status_Label1 = new javax.swing.JLabel();
     private javax.swing.JLabel SC_Tile_Label;
     private javax.swing.JButton SC_Withdraw_Button;
     private javax.swing.JLabel SC_img_Label;
@@ -5047,6 +4957,11 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPanel Student_SRE_Right_Panel;
     private javax.swing.JLabel User_Img;
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JComboBox<String> jComboBox3;
+    private javax.swing.JComboBox<String> jComboBox4;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     // End of variables declaration//GEN-END:variables
 }
 // Round Panel
