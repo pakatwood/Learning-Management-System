@@ -10,15 +10,18 @@ package learning.management.system;
  * @author Haider Qazi (Chief Programmer), Daniel Gasperini (Backup Programmer), Javier Blanco (Programmer), David Dinh (Programmer), Christian Francois (Programming Secretary)
  */
 public class GPA {
-    public String Course_No, Course_Description, Grade, Units;
+    public String Class_ID, Course_No, Course_Description, Grade, Units;
     
-    public GPA(String Course_No, String Course_Description, String Units, String Grade){
+    public GPA(String Class_ID, String Course_No, String Course_Description, String Units, String Grade){
+        this.Class_ID = Class_ID;
         this.Course_No = Course_No;
         this.Course_Description = Course_Description;
         this.Units = Units;
         this.Grade = Grade;
     }
-    
+       public String getClassID(){
+           return Class_ID;
+       }
        public String getCourseNo(){
            return Course_No;
        }

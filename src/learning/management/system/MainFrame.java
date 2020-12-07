@@ -97,6 +97,7 @@ public class MainFrame extends javax.swing.JFrame {
             Show_RegisteredCourses();
             StudentCoursesComboBox();
             Show_GPA_Table();
+            SP_CalculateGP();
         }
     }
     // Student - Class Schedule Table in Main Panel
@@ -160,6 +161,12 @@ public class MainFrame extends javax.swing.JFrame {
         AECG_Registered_Courses_Table.getColumnModel().getColumn(1).setPreferredWidth(30);
         AECG_Registered_Courses_Table.getColumnModel().getColumn(2).setPreferredWidth(100);
         AECG_Registered_Courses_Table.getColumnModel().getColumn(3).setPreferredWidth(100);
+        // Admin - Student Course Grades Table Column Size in Assign Exam & Course Grades Panel
+        AECG_Course_Grades_Table.getColumnModel().getColumn(0).setPreferredWidth(50);
+        AECG_Course_Grades_Table.getColumnModel().getColumn(1).setPreferredWidth(145);
+        AECG_Course_Grades_Table.getColumnModel().getColumn(2).setPreferredWidth(10);
+        AECG_Course_Grades_Table.getColumnModel().getColumn(3).setPreferredWidth(10);
+        AECG_Course_Grades_Table.getColumnModel().getColumn(4).setPreferredWidth(15);
     }
     // Table Column Alignment
     private void tableColumnAlignment(){
@@ -176,7 +183,10 @@ public class MainFrame extends javax.swing.JFrame {
         // Student - Registered Courses Table
         SP_Registered_Courses_Table.getColumnModel().getColumn(4).setCellRenderer(centerRenderer);
         SP_Registered_Courses_Table.getColumnModel().getColumn(5).setCellRenderer(centerRenderer);
-        
+        // Admin - Student Course Grades Table
+        AECG_Course_Grades_Table.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
+        AECG_Course_Grades_Table.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
+        AECG_Course_Grades_Table.getColumnModel().getColumn(4).setCellRenderer(centerRenderer);
     }
     // Setting Home Tiles Background Color
     private void HomeTile(){
@@ -447,6 +457,43 @@ public class MainFrame extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(rootPane, e);
         }
     }
+    // Admin - Student Course_Grades Table in Assign Exam & Course Grades Panel
+    public ArrayList<GPA> AECG_Course_Grades(){
+        ArrayList<GPA> GPA = new ArrayList<>();
+        try{
+            int s_row = AECG_Students_Table.getSelectedRow();
+            int c_row = AECG_Registered_Courses_Table.getSelectedRow();
+            String AECG_StudentID = AECG_Students_Table.getModel().getValueAt(AECG_Students_Table.convertRowIndexToModel(s_row), 0).toString();
+            conn = MySqlConnect.ConnectDB();
+            String Query4 = "SELECT c.Class_ID, Course_No, Course_Description, Units, Grade FROM registered_courses sc INNER JOIN courses c ON c.class_id = sc.class_id WHERE sc.Student_ID = '" +AECG_StudentID+"'";
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery(Query4);
+            GPA gpa;
+            while(rs.next()){
+                gpa = new GPA(rs.getString("Class_ID"), rs.getString("Course_No"), rs.getString("Course_Description"), rs.getString("Units"), rs.getString("Grade"));
+                GPA.add(gpa);
+            }
+            st.close();
+            rs.close();
+        }
+        catch(Exception e){
+            JOptionPane.showMessageDialog(null, e);
+        }
+        return GPA;
+    }
+    // Admin - Show Student Course Grades Table in Assign Exam & Course Grades Panel
+    public void Show_Course_Grades_Table() {
+        ArrayList<GPA> list = AECG_Course_Grades();
+        DefaultTableModel model = (DefaultTableModel)AECG_Course_Grades_Table.getModel();
+        Object[] row = new Object[4];
+        for(int i=0;i<list.size();i++){
+            row[0]=list.get(i).getClassID();
+            row[1]=list.get(i).getCourseDescription();
+            row[2]=list.get(i).getUnits();
+            row[3]=list.get(i).getGrade();
+            model.addRow(row);
+        }
+    }
     // Admin - Update Student Registed Courses Table in Student Courses Panel
     public void UpdateSRCT() {
         DefaultTableModel model = (DefaultTableModel)SC_Student_Courses_Table.getModel();
@@ -480,7 +527,7 @@ public class MainFrame extends javax.swing.JFrame {
             ResultSet rs = st.executeQuery(Query4);
             GPA gpa;
             while(rs.next()){
-                gpa = new GPA(rs.getString("Course_No"), rs.getString("Course_Description"), rs.getString("Units"), rs.getString("Grade"));
+                gpa = new GPA(rs.getString("Class_ID"), rs.getString("Course_No"), rs.getString("Course_Description"), rs.getString("Units"), rs.getString("Grade"));
                 GPA.add(gpa);
             }
             st.close();
@@ -521,6 +568,79 @@ public class MainFrame extends javax.swing.JFrame {
             Total_Points = Total_Points + Float.valueOf(SP_GPA_Table.getValueAt(i, 4).toString());
         }
         return Total_Points;
+    }
+    // Admin - Calculate Grade Points in Assign Exam & Course Grades Panel
+    public void AECG_CalculateGP() {
+        TableModel AECG_CGT = AECG_Course_Grades_Table.getModel();
+        int nRow = AECG_Course_Grades_Table.getRowCount();
+        for(int x = 0; x < nRow; x++) {
+            int Units = Integer.parseInt(AECG_Course_Grades_Table.getValueAt(x, 2).toString());
+            int GradePoint = 0;
+            if(AECG_Course_Grades_Table.getValueAt(x, 3) == null)
+            {
+                GradePoint = 0;
+            }
+            else if(AECG_Course_Grades_Table.getValueAt(x, 3).equals("A"))
+            {
+                GradePoint = 4 * Units;
+            }
+            else if(AECG_Course_Grades_Table.getValueAt(x, 3).equals("B"))
+            {
+                GradePoint = 3 * Units;
+            }
+            else if(AECG_Course_Grades_Table.getValueAt(x, 3).equals("C"))
+            {
+                GradePoint = 2 * Units;
+            }
+            else if(AECG_Course_Grades_Table.getValueAt(x, 3).equals("D"))
+            {
+                GradePoint = 1 * Units;
+            }
+            else if(AECG_Course_Grades_Table.getValueAt(x, 3).equals("F"))
+            {
+                GradePoint = 0 * Units;
+            }
+            AECG_CGT.setValueAt(GradePoint, x, 4);
+        }
+    }
+    // Admin - Calculate Grade Points in Assign Exam & Course Grades Panel
+    public void SP_CalculateGP() {
+        TableModel model = SP_GPA_Table.getModel();
+        int nRow = SP_GPA_Table.getRowCount();
+        for(int x = 0; x < nRow; x++) {
+            int Units = Integer.parseInt(SP_GPA_Table.getValueAt(x, 2).toString());
+            int GradePoint = 0;
+            if(SP_GPA_Table.getValueAt(x, 3) == null)
+            {
+                GradePoint = 0;
+            }
+            else if(SP_GPA_Table.getValueAt(x, 3).equals("A"))
+            {
+                GradePoint = 4 * Units;
+            }
+            else if(SP_GPA_Table.getValueAt(x, 3).equals("B"))
+            {
+                GradePoint = 3 * Units;
+            }
+            else if(SP_GPA_Table.getValueAt(x, 3).equals("C"))
+            {
+                GradePoint = 2 * Units;
+            }
+            else if(SP_GPA_Table.getValueAt(x, 3).equals("D"))
+            {
+                GradePoint = 1 * Units;
+            }
+            else if(SP_GPA_Table.getValueAt(x, 3).equals("F"))
+            {
+                GradePoint = 0 * Units;
+            }
+            model.setValueAt(GradePoint, x, 4);
+        }
+        float GPA = (getTotalPoints()) / (getTotalCredits());
+        String GPA_Text = String.valueOf(GPA);
+        SP_GPA_Formula_Label.setText("Total Points (" + getTotalPoints() + ") / " + "Total Credits (" + getTotalCredits() + " )");
+        SP_GPA_Label.setText("GPA = " + GPA_Text);
+        SP_GPA_Table.getSelectionModel().clearSelection();
     }
     // Student - Setting Current Course Selection Options
     public void StudentCoursesComboBox() {
@@ -619,6 +739,16 @@ public class MainFrame extends javax.swing.JFrame {
                 }
             }
     }
+    // Admin - Clear Student Course Grades Table in Student Courses Panel
+    public void Admin_AECG_ClearCourseGradesTable() {
+        DefaultTableModel model = (DefaultTableModel)AECG_Course_Grades_Table.getModel();
+            while(model.getRowCount()>0){
+                for(int i = 0; i < model.getRowCount(); i++)
+                {
+                    model.removeRow(i);
+                }
+            }
+    }
     // Search Course Table in Manage Courses Panel
     public void MC_FilterCourse(String SearchCourse){
         TableRowSorter<DefaultTableModel> tr = new TableRowSorter<>(MC_CC_Table);
@@ -671,6 +801,111 @@ public class MainFrame extends javax.swing.JFrame {
         Minimize_Icon_Panel = new javax.swing.JPanel();
         Minimize_Icon = new javax.swing.JLabel();
         LMS_Header_Label = new javax.swing.JLabel();
+        Student_SRE_Panel = new javax.swing.JPanel();
+        Student_SRE_Right_Panel = new javax.swing.JPanel();
+        SP_Student_Information_Panel = new javax.swing.JPanel();
+        SP_Student_Information_Heading_Label = new javax.swing.JLabel();
+        SP_Student_ID_Heading_Label = new javax.swing.JLabel();
+        SP_Student_Status_Heading_Label = new javax.swing.JLabel();
+        SP_Residency_Status_Heading_Label = new javax.swing.JLabel();
+        SP_Class_Standing_Heading_Label = new javax.swing.JLabel();
+        SP_Location_Heading_Label = new javax.swing.JLabel();
+        SP_Major_Heading_Label = new javax.swing.JLabel();
+        SP_Contact_Label = new javax.swing.JLabel();
+        SP_Phone_Number_Heading_Label = new javax.swing.JLabel();
+        SP_Email_Heading_Label = new javax.swing.JLabel();
+        SP_Registered_Courses_Panel = new javax.swing.JPanel();
+        SP_Registered_Courses_Heading_Label = new javax.swing.JLabel();
+        SP_Registered_Courses_Table_ScrollPane = new javax.swing.JScrollPane();
+        SP_Registered_Courses_Table = new javax.swing.JTable();
+        SP_Exam_Grades_Panel = new javax.swing.JPanel();
+        SP_Exam_Grades_Heading_Label = new javax.swing.JLabel();
+        SP_Course_Selection_ComboBox = new javax.swing.JComboBox<>();
+        SP_Exam_Grades_Table_ScrollPane = new javax.swing.JScrollPane();
+        SP_Exam_Grades_Table = new javax.swing.JTable();
+        SP_GPA_Panel = new javax.swing.JPanel();
+        SP_GPA_Heading_Label = new javax.swing.JLabel();
+        SP_GPA_Table_ScrollPane = new javax.swing.JScrollPane();
+        SP_GPA_Table = new javax.swing.JTable();
+        SP_GPA_Label = new javax.swing.JLabel();
+        SP_Calculate_GPA_Button = new javax.swing.JButton();
+        SP_GPA_Formula_Label = new javax.swing.JLabel();
+        SP_Reset_Button = new javax.swing.JButton();
+        Student_SRE_Left_Panel = new javax.swing.JPanel();
+        User_Img = new javax.swing.JLabel();
+        Home_Button_Panel = new javax.swing.JPanel();
+        SP_Home_Button_Label = new javax.swing.JLabel();
+        SP_Home_Button_Icon = new javax.swing.JLabel();
+        SC_Button_Panel = new javax.swing.JPanel();
+        SP_SC_Button_Label = new javax.swing.JLabel();
+        SP_SC_Button_Icon = new javax.swing.JLabel();
+        SCC_Button_Panel = new javax.swing.JPanel();
+        SP_SCC_Button_Label = new javax.swing.JLabel();
+        SP_SCC_Button_Icon = new javax.swing.JLabel();
+        AA_Button_Panel = new javax.swing.JPanel();
+        SP_AA_Button_Label = new javax.swing.JLabel();
+        SP_AA_Button_Icon = new javax.swing.JLabel();
+        SRE_Button_Panel = new javax.swing.JPanel();
+        SP_SRE_Button_Label = new javax.swing.JLabel();
+        SP_SRE_Button_Icon = new javax.swing.JLabel();
+        SFA_Button_Panel = new javax.swing.JPanel();
+        SP_SFA_Button_Label = new javax.swing.JLabel();
+        SP_SFA_Button_Icon = new javax.swing.JLabel();
+        SF_Button_Panel = new javax.swing.JPanel();
+        SP_SF_Button_Label = new javax.swing.JLabel();
+        SP_SF_Button_Icon = new javax.swing.JLabel();
+        SP_Logout_Button_Icon = new javax.swing.JLabel();
+        SP_Logout_Button_Label = new javax.swing.JLabel();
+        Admin_AECG_Panel = new javax.swing.JPanel();
+        Admin_AECG_Left_Panel = new javax.swing.JPanel();
+        Admin_AECG_Img = new javax.swing.JLabel();
+        AECG_Home_Button_Panel = new javax.swing.JPanel();
+        AECG_Home_Button_Label = new javax.swing.JLabel();
+        AECG_Home_Button_Icon = new javax.swing.JLabel();
+        AECG_MC_Button_Panel = new javax.swing.JPanel();
+        AECG_MC_Button_Label = new javax.swing.JLabel();
+        AECG_MC_Button_Icon = new javax.swing.JLabel();
+        AECG_MS_Button_Panel = new javax.swing.JPanel();
+        AECG_MS_Button_Label = new javax.swing.JLabel();
+        AECG_MS_Button_Icon = new javax.swing.JLabel();
+        AECG_SC_Button_Panel = new javax.swing.JPanel();
+        AECG_SC_Button_Label = new javax.swing.JLabel();
+        AECG_SC_Button_Icon = new javax.swing.JLabel();
+        AECG_AECG_Button_Panel = new javax.swing.JPanel();
+        AECG_AECG_Button_Label = new javax.swing.JLabel();
+        AECG_AECG_Button_Icon = new javax.swing.JLabel();
+        AECG_SFA_Button_Panel = new javax.swing.JPanel();
+        AECG_SFA_Button_Label = new javax.swing.JLabel();
+        AECG_SFA_Button_Icon = new javax.swing.JLabel();
+        AECG_SF_Button_Panel = new javax.swing.JPanel();
+        AECG_SF_Button_Label = new javax.swing.JLabel();
+        AECG_SF_Button_Icon = new javax.swing.JLabel();
+        AECG_Logout_Button_Icon = new javax.swing.JLabel();
+        AECG_Logout_Button_Label = new javax.swing.JLabel();
+        Admin_AECG_Right_Panel = new javax.swing.JPanel();
+        AECG_Assign_Course_Grade_Panel = new javax.swing.JPanel();
+        AECG_Assign_Exam_Grades_Header_Label = new javax.swing.JLabel();
+        AECG_GPA_Table_ScrollPane = new javax.swing.JScrollPane();
+        AECG_Course_Grades_Table = new javax.swing.JTable();
+        AECG_Save_Button = new javax.swing.JButton();
+        AECG_Instructor_Course_Panel = new javax.swing.JPanel();
+        AECG_Select_Student_Course_Heading_Label = new javax.swing.JLabel();
+        AECG_Search_Button_Panel = new javax.swing.JPanel();
+        SC_Search_Button_Icon1 = new javax.swing.JLabel();
+        AECG_Search_Placeholder_Field = new javax.swing.JLabel();
+        AECG_Search_Student_Field = new javax.swing.JTextField();
+        AECG_Students_Table_ScrollPane = new javax.swing.JScrollPane();
+        AECG_Students_Table = new javax.swing.JTable();
+        AECG_Registered_Courses_Table_ScrollPane = new javax.swing.JScrollPane();
+        AECG_Registered_Courses_Table = new javax.swing.JTable();
+        AECG_Assign_Exam_Grade_Panel = new javax.swing.JPanel();
+        AECG_Assign_Exam_Grades_Header_Label1 = new javax.swing.JLabel();
+        AECG_Exam_Name_ComboBox = new javax.swing.JComboBox<>();
+        AECG_Exam_Weight_Field = new javax.swing.JTextField();
+        AECG_Score_Received_Field = new javax.swing.JTextField();
+        AECG_Assign_Button = new javax.swing.JButton();
+        AECG_Update_Button = new javax.swing.JButton();
+        AECG_Delete_Button = new javax.swing.JButton();
         Student_Main_Page_Panel = new javax.swing.JPanel();
         Student_Main_Page_Left_Panel = new javax.swing.JPanel();
         MP_User_Img = new javax.swing.JLabel();
@@ -733,107 +968,6 @@ public class MainFrame extends javax.swing.JFrame {
         Admin_Student_Financials_Panel = new RoundedPanel(20,new Color(232,232,232));
         Admin_SF_Tile_Label = new javax.swing.JLabel();
         Admin_SF_img_Label = new javax.swing.JLabel();
-        Student_SRE_Panel = new javax.swing.JPanel();
-        Student_SRE_Right_Panel = new javax.swing.JPanel();
-        SP_Student_Information_Panel = new javax.swing.JPanel();
-        SP_Student_Information_Heading_Label = new javax.swing.JLabel();
-        SP_Student_ID_Heading_Label = new javax.swing.JLabel();
-        SP_Student_Status_Heading_Label = new javax.swing.JLabel();
-        SP_Residency_Status_Heading_Label = new javax.swing.JLabel();
-        SP_Class_Standing_Heading_Label = new javax.swing.JLabel();
-        SP_Location_Heading_Label = new javax.swing.JLabel();
-        SP_Major_Heading_Label = new javax.swing.JLabel();
-        SP_Contact_Label = new javax.swing.JLabel();
-        SP_Phone_Number_Heading_Label = new javax.swing.JLabel();
-        SP_Email_Heading_Label = new javax.swing.JLabel();
-        SP_Registered_Courses_Panel = new javax.swing.JPanel();
-        SP_Registered_Courses_Heading_Label = new javax.swing.JLabel();
-        SP_Registered_Courses_Table_ScrollPane = new javax.swing.JScrollPane();
-        SP_Registered_Courses_Table = new javax.swing.JTable();
-        SP_Exam_Grades_Panel = new javax.swing.JPanel();
-        SP_Exam_Grades_Heading_Label = new javax.swing.JLabel();
-        SP_Course_Selection_ComboBox = new javax.swing.JComboBox<>();
-        SP_Exam_Grades_Table_ScrollPane = new javax.swing.JScrollPane();
-        SP_Exam_Grades_Table = new javax.swing.JTable();
-        SP_GPA_Panel = new javax.swing.JPanel();
-        SP_GPA_Heading_Label = new javax.swing.JLabel();
-        SP_GPA_Table_ScrollPane = new javax.swing.JScrollPane();
-        SP_GPA_Table = new javax.swing.JTable();
-        SP_GPA_Label = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-        SP_GPA_Formula_Label = new javax.swing.JLabel();
-        Student_SRE_Left_Panel = new javax.swing.JPanel();
-        User_Img = new javax.swing.JLabel();
-        Home_Button_Panel = new javax.swing.JPanel();
-        SP_Home_Button_Label = new javax.swing.JLabel();
-        SP_Home_Button_Icon = new javax.swing.JLabel();
-        SC_Button_Panel = new javax.swing.JPanel();
-        SP_SC_Button_Label = new javax.swing.JLabel();
-        SP_SC_Button_Icon = new javax.swing.JLabel();
-        SCC_Button_Panel = new javax.swing.JPanel();
-        SP_SCC_Button_Label = new javax.swing.JLabel();
-        SP_SCC_Button_Icon = new javax.swing.JLabel();
-        AA_Button_Panel = new javax.swing.JPanel();
-        SP_AA_Button_Label = new javax.swing.JLabel();
-        SP_AA_Button_Icon = new javax.swing.JLabel();
-        SRE_Button_Panel = new javax.swing.JPanel();
-        SP_SRE_Button_Label = new javax.swing.JLabel();
-        SP_SRE_Button_Icon = new javax.swing.JLabel();
-        SFA_Button_Panel = new javax.swing.JPanel();
-        SP_SFA_Button_Label = new javax.swing.JLabel();
-        SP_SFA_Button_Icon = new javax.swing.JLabel();
-        SF_Button_Panel = new javax.swing.JPanel();
-        SP_SF_Button_Label = new javax.swing.JLabel();
-        SP_SF_Button_Icon = new javax.swing.JLabel();
-        SP_Logout_Button_Icon = new javax.swing.JLabel();
-        SP_Logout_Button_Label = new javax.swing.JLabel();
-        Admin_AECG_Panel = new javax.swing.JPanel();
-        Admin_AECG_Left_Panel = new javax.swing.JPanel();
-        Admin_AECG_Img = new javax.swing.JLabel();
-        AECG_Home_Button_Panel = new javax.swing.JPanel();
-        AECG_Home_Button_Label = new javax.swing.JLabel();
-        AECG_Home_Button_Icon = new javax.swing.JLabel();
-        AECG_MC_Button_Panel = new javax.swing.JPanel();
-        AECG_MC_Button_Label = new javax.swing.JLabel();
-        AECG_MC_Button_Icon = new javax.swing.JLabel();
-        AECG_MS_Button_Panel = new javax.swing.JPanel();
-        AECG_MS_Button_Label = new javax.swing.JLabel();
-        AECG_MS_Button_Icon = new javax.swing.JLabel();
-        AECG_SC_Button_Panel = new javax.swing.JPanel();
-        AECG_SC_Button_Label = new javax.swing.JLabel();
-        AECG_SC_Button_Icon = new javax.swing.JLabel();
-        AECG_AECG_Button_Panel = new javax.swing.JPanel();
-        AECG_AECG_Button_Label = new javax.swing.JLabel();
-        AECG_AECG_Button_Icon = new javax.swing.JLabel();
-        AECG_SFA_Button_Panel = new javax.swing.JPanel();
-        AECG_SFA_Button_Label = new javax.swing.JLabel();
-        AECG_SFA_Button_Icon = new javax.swing.JLabel();
-        AECG_SF_Button_Panel = new javax.swing.JPanel();
-        AECG_SF_Button_Label = new javax.swing.JLabel();
-        AECG_SF_Button_Icon = new javax.swing.JLabel();
-        AECG_Logout_Button_Icon = new javax.swing.JLabel();
-        AECG_Logout_Button_Label = new javax.swing.JLabel();
-        Admin_AECG_Right_Panel = new javax.swing.JPanel();
-        AECG_Assign_Course_Grade_Panel = new javax.swing.JPanel();
-        AECG_Assign_Exam_Grades_Header_Label = new javax.swing.JLabel();
-        AECG_Instructor_Course_Panel = new javax.swing.JPanel();
-        AECG_Select_Student_Course_Heading_Label = new javax.swing.JLabel();
-        AECG_Search_Button_Panel = new javax.swing.JPanel();
-        SC_Search_Button_Icon1 = new javax.swing.JLabel();
-        AECG_Search_Placeholder_Field = new javax.swing.JLabel();
-        AECG_Search_Student_Field = new javax.swing.JTextField();
-        AECG_Students_Table_ScrollPane = new javax.swing.JScrollPane();
-        AECG_Students_Table = new javax.swing.JTable();
-        AECG_Registered_Courses_Table_ScrollPane = new javax.swing.JScrollPane();
-        AECG_Registered_Courses_Table = new javax.swing.JTable();
-        AECG_Assign_Exam_Grade_Panel = new javax.swing.JPanel();
-        AECG_Assign_Exam_Grades_Header_Label1 = new javax.swing.JLabel();
-        AECG_Exam_Name_ComboBox = new javax.swing.JComboBox<>();
-        AECG_Exam_Weight_Field = new javax.swing.JTextField();
-        AECG_Score_Received_Field = new javax.swing.JTextField();
-        AECG_Assign_Button = new javax.swing.JButton();
-        AECG_Update_Button = new javax.swing.JButton();
-        AECG_Delete_Button = new javax.swing.JButton();
         Admin_SC_Panel = new javax.swing.JPanel();
         Admin_SC_Left_Panel = new javax.swing.JPanel();
         Admin_SC_Img = new javax.swing.JLabel();
@@ -1094,6 +1228,870 @@ public class MainFrame extends javax.swing.JFrame {
         Move_Panel.add(LMS_Header_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1275, 35));
 
         Main_Frame_Panel.add(Move_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1275, 40));
+
+        Student_SRE_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        Student_SRE_Right_Panel.setBackground(new java.awt.Color(242, 242, 242));
+        Student_SRE_Right_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        SP_Student_Information_Panel.setBackground(new java.awt.Color(255, 255, 255));
+        SP_Student_Information_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        SP_Student_Information_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
+        SP_Student_Information_Heading_Label.setText("Student Information");
+        SP_Student_Information_Panel.add(SP_Student_Information_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 310, 30));
+
+        SP_Student_ID_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Student_ID_Heading_Label.setText("Student ID");
+        SP_Student_Information_Panel.add(SP_Student_ID_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 45, 80, 20));
+
+        SP_Student_ID_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Student_ID_Label.setForeground(new java.awt.Color(102, 102, 102));
+        SP_Student_ID_Label.setText("ID-0001");
+        SP_Student_Information_Panel.add(SP_Student_ID_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 45, 160, 20));
+
+        SP_Student_Status_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Student_Status_Heading_Label.setText("Student Status");
+        SP_Student_Information_Panel.add(SP_Student_Status_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 90, 100, 20));
+
+        SP_Student_Status_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Student_Status_Label.setForeground(new java.awt.Color(102, 102, 102));
+        SP_Student_Status_Label.setText("Active");
+        SP_Student_Information_Panel.add(SP_Student_Status_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 90, 190, 20));
+
+        SP_Residency_Status_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Residency_Status_Heading_Label.setText("Residency Status");
+        SP_Student_Information_Panel.add(SP_Residency_Status_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 120, 110, 20));
+
+        SP_Residency_Status_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Residency_Status_Label.setForeground(new java.awt.Color(102, 102, 102));
+        SP_Residency_Status_Label.setText("Non-Resident");
+        SP_Student_Information_Panel.add(SP_Residency_Status_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 120, 190, 20));
+
+        SP_Class_Standing_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Class_Standing_Heading_Label.setText("Class Standing");
+        SP_Student_Information_Panel.add(SP_Class_Standing_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 150, 110, 20));
+
+        SP_Class_Standing_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Class_Standing_Label.setForeground(new java.awt.Color(102, 102, 102));
+        SP_Class_Standing_Label.setText("Senior");
+        SP_Student_Information_Panel.add(SP_Class_Standing_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 150, 190, 20));
+
+        SP_Location_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Location_Heading_Label.setText("Location");
+        SP_Student_Information_Panel.add(SP_Location_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 180, 110, 20));
+
+        SP_Location_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Location_Label.setForeground(new java.awt.Color(102, 102, 102));
+        SP_Location_Label.setText("Main Campus");
+        SP_Student_Information_Panel.add(SP_Location_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 180, 190, 20));
+
+        SP_Major_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Major_Heading_Label.setText("Major");
+        SP_Student_Information_Panel.add(SP_Major_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 210, 110, 20));
+
+        SP_Major_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Major_Label.setForeground(new java.awt.Color(102, 102, 102));
+        SP_Major_Label.setText("Computer Science");
+        SP_Student_Information_Panel.add(SP_Major_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 210, 190, 20));
+
+        SP_Contact_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
+        SP_Contact_Label.setText("Contact");
+        SP_Student_Information_Panel.add(SP_Contact_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 240, 460, 30));
+
+        SP_Phone_Number_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Phone_Number_Heading_Label.setText("Phone Number");
+        SP_Student_Information_Panel.add(SP_Phone_Number_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 280, 100, 20));
+
+        SP_Phone_Number_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Phone_Number_Label.setForeground(new java.awt.Color(102, 102, 102));
+        SP_Phone_Number_Label.setText("832-435-8524");
+        SP_Student_Information_Panel.add(SP_Phone_Number_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 280, 190, 20));
+
+        SP_Email_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Email_Heading_Label.setText("E-Mail");
+        SP_Student_Information_Panel.add(SP_Email_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 310, 100, 20));
+
+        SP_Email_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Email_Label.setForeground(new java.awt.Color(102, 102, 102));
+        SP_Email_Label.setText("student@uh.edu");
+        SP_Student_Information_Panel.add(SP_Email_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 310, 190, 20));
+
+        Student_SRE_Right_Panel.add(SP_Student_Information_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 350, 350));
+
+        SP_Registered_Courses_Panel.setBackground(new java.awt.Color(255, 255, 255));
+        SP_Registered_Courses_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        SP_Registered_Courses_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
+        SP_Registered_Courses_Heading_Label.setText("Registered Courses (Current Semester)");
+        SP_Registered_Courses_Panel.add(SP_Registered_Courses_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 560, 30));
+
+        SP_Registered_Courses_Table.setAutoCreateRowSorter(true);
+        SP_Registered_Courses_Table.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 12)); // NOI18N
+        SP_Registered_Courses_Table.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "COURSE #", "COURSE DESCRIPTION", "ROOM", "INSTRUCTOR", "START DATE", "END DATE"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        SP_Registered_Courses_Table.setGridColor(new java.awt.Color(0, 41, 85));
+        SP_Registered_Courses_Table.setIntercellSpacing(new java.awt.Dimension(0, 0));
+        SP_Registered_Courses_Table.setRowHeight(20);
+        SP_Registered_Courses_Table.setShowGrid(true);
+        SP_Registered_Courses_Table_ScrollPane.setViewportView(SP_Registered_Courses_Table);
+
+        SP_Registered_Courses_Panel.add(SP_Registered_Courses_Table_ScrollPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 60, 560, 280));
+
+        Student_SRE_Right_Panel.add(SP_Registered_Courses_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 10, 580, 350));
+
+        SP_Exam_Grades_Panel.setBackground(new java.awt.Color(255, 255, 255));
+        SP_Exam_Grades_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        SP_Exam_Grades_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
+        SP_Exam_Grades_Heading_Label.setText("Exam Grades");
+        SP_Exam_Grades_Panel.add(SP_Exam_Grades_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 260, 30));
+
+        SP_Course_Selection_ComboBox.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Course_Selection_ComboBox.setMaximumRowCount(10);
+        SP_Course_Selection_ComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "<Select Course>" }));
+        SP_Course_Selection_ComboBox.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        SP_Course_Selection_ComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                SP_Course_Selection_ComboBoxActionPerformed(evt);
+            }
+        });
+        SP_Exam_Grades_Panel.add(SP_Course_Selection_ComboBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 10, 190, 30));
+
+        SP_Exam_Grades_Table.setAutoCreateRowSorter(true);
+        SP_Exam_Grades_Table.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 12)); // NOI18N
+        SP_Exam_Grades_Table.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "EXAM NAME", "WEIGHT (%)", "SCORE RECEIVED (%)", "GRADE EARNED (%)"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        SP_Exam_Grades_Table.setGridColor(new java.awt.Color(0, 41, 85));
+        SP_Exam_Grades_Table.setIntercellSpacing(new java.awt.Dimension(0, 0));
+        SP_Exam_Grades_Table.setRowHeight(20);
+        SP_Exam_Grades_Table.setShowGrid(true);
+        SP_Exam_Grades_Table_ScrollPane.setViewportView(SP_Exam_Grades_Table);
+
+        SP_Exam_Grades_Panel.add(SP_Exam_Grades_Table_ScrollPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 60, 460, 250));
+
+        Student_SRE_Right_Panel.add(SP_Exam_Grades_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 370, 480, 320));
+
+        SP_GPA_Panel.setBackground(new java.awt.Color(255, 255, 255));
+        SP_GPA_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        SP_GPA_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
+        SP_GPA_Heading_Label.setText("GPA (Current Semester)");
+        SP_GPA_Panel.add(SP_GPA_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 220, 30));
+
+        SP_GPA_Table.setAutoCreateRowSorter(true);
+        SP_GPA_Table.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 12)); // NOI18N
+        SP_GPA_Table.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "COURSE #", "COURSE DESCRIPTION", "UNITS", "GRADE", "POINTS"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, true, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        SP_GPA_Table.setGridColor(new java.awt.Color(0, 41, 85));
+        SP_GPA_Table.setIntercellSpacing(new java.awt.Dimension(0, 0));
+        SP_GPA_Table.setRowHeight(20);
+        SP_GPA_Table.setShowGrid(true);
+        SP_GPA_Table_ScrollPane.setViewportView(SP_GPA_Table);
+
+        SP_GPA_Panel.add(SP_GPA_Table_ScrollPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 60, 430, 180));
+
+        SP_GPA_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 40)); // NOI18N
+        SP_GPA_Label.setForeground(new java.awt.Color(0, 41, 85));
+        SP_GPA_Label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        SP_GPA_Panel.add(SP_GPA_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 275, 430, 40));
+
+        SP_Calculate_GPA_Button.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Calculate_GPA_Button.setText("Calculate GPA");
+        SP_Calculate_GPA_Button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        SP_Calculate_GPA_Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                SP_Calculate_GPA_ButtonActionPerformed(evt);
+            }
+        });
+        SP_GPA_Panel.add(SP_Calculate_GPA_Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 13, -1, 30));
+
+        SP_GPA_Formula_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 25)); // NOI18N
+        SP_GPA_Formula_Label.setForeground(new java.awt.Color(0, 41, 85));
+        SP_GPA_Formula_Label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        SP_GPA_Panel.add(SP_GPA_Formula_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 237, 430, 40));
+
+        SP_Reset_Button.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        SP_Reset_Button.setText("RESET");
+        SP_Reset_Button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        SP_Reset_Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                SP_Reset_ButtonActionPerformed(evt);
+            }
+        });
+        SP_GPA_Panel.add(SP_Reset_Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 13, -1, 30));
+
+        Student_SRE_Right_Panel.add(SP_GPA_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(500, 370, 450, 320));
+
+        Student_SRE_Panel.add(Student_SRE_Right_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 0, 955, 700));
+
+        Student_SRE_Left_Panel.setBackground(new java.awt.Color(85, 142, 203));
+        Student_SRE_Left_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        User_Img.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        User_Img.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/custom user.png"))); // NOI18N
+        Student_SRE_Left_Panel.add(User_Img, new org.netbeans.lib.awtextra.AbsoluteConstraints(95, 30, 130, 130));
+
+        Student_Name_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 25)); // NOI18N
+        Student_Name_Label.setForeground(new java.awt.Color(255, 255, 255));
+        Student_Name_Label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        Student_Name_Label.setText("Student Name");
+        Student_SRE_Left_Panel.add(Student_Name_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 160, 320, 40));
+
+        Student_Discription_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        Student_Discription_Label.setForeground(new java.awt.Color(255, 255, 255));
+        Student_Discription_Label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        Student_Discription_Label.setText("Student | University of Houston");
+        Student_SRE_Left_Panel.add(Student_Discription_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 200, 320, 20));
+
+        Home_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
+        Home_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        Home_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                Home_Button_PanelMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                Home_Button_PanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                Home_Button_PanelMouseExited(evt);
+            }
+        });
+        Home_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        SP_Home_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
+        SP_Home_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
+        SP_Home_Button_Label.setText("Home");
+        Home_Button_Panel.add(SP_Home_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
+
+        SP_Home_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        SP_Home_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Home Icon 16x16.png"))); // NOI18N
+        Home_Button_Panel.add(SP_Home_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
+
+        Student_SRE_Left_Panel.add(Home_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 280, 320, 40));
+
+        SC_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
+        SC_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        SC_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                SC_Button_PanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                SC_Button_PanelMouseExited(evt);
+            }
+        });
+        SC_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        SP_SC_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
+        SP_SC_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
+        SP_SC_Button_Label.setText("Student Center");
+        SC_Button_Panel.add(SP_SC_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
+
+        SP_SC_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        SP_SC_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Student Center Icon 16x16.png"))); // NOI18N
+        SC_Button_Panel.add(SP_SC_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
+
+        Student_SRE_Left_Panel.add(SC_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 320, 320, 40));
+
+        SCC_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
+        SCC_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        SCC_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                SCC_Button_PanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                SCC_Button_PanelMouseExited(evt);
+            }
+        });
+        SCC_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        SP_SCC_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
+        SP_SCC_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
+        SP_SCC_Button_Label.setText("Student Communication Center");
+        SCC_Button_Panel.add(SP_SCC_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
+
+        SP_SCC_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        SP_SCC_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Student Communication Center 16x16.png"))); // NOI18N
+        SCC_Button_Panel.add(SP_SCC_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
+
+        Student_SRE_Left_Panel.add(SCC_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 360, 320, 40));
+
+        AA_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
+        AA_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AA_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                AA_Button_PanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                AA_Button_PanelMouseExited(evt);
+            }
+        });
+        AA_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        SP_AA_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
+        SP_AA_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
+        SP_AA_Button_Label.setText("Academic Advising");
+        AA_Button_Panel.add(SP_AA_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
+
+        SP_AA_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        SP_AA_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Academic Advising 16x16.png"))); // NOI18N
+        AA_Button_Panel.add(SP_AA_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
+
+        Student_SRE_Left_Panel.add(AA_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 400, 320, 40));
+
+        SRE_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
+        SRE_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        SRE_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                SRE_Button_PanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                SRE_Button_PanelMouseExited(evt);
+            }
+        });
+        SRE_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        SP_SRE_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
+        SP_SRE_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
+        SP_SRE_Button_Label.setText("Student Records & Enrollment");
+        SRE_Button_Panel.add(SP_SRE_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
+
+        SP_SRE_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        SP_SRE_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Student Records Enrollment 16x16.png"))); // NOI18N
+        SRE_Button_Panel.add(SP_SRE_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
+
+        Student_SRE_Left_Panel.add(SRE_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 440, 320, 40));
+
+        SFA_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
+        SFA_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        SFA_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                SFA_Button_PanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                SFA_Button_PanelMouseExited(evt);
+            }
+        });
+        SFA_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        SP_SFA_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
+        SP_SFA_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
+        SP_SFA_Button_Label.setText("Scholarship & Financial Aid");
+        SFA_Button_Panel.add(SP_SFA_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
+
+        SP_SFA_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        SP_SFA_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Scholarship Financial Aid 16x16.png"))); // NOI18N
+        SFA_Button_Panel.add(SP_SFA_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
+
+        Student_SRE_Left_Panel.add(SFA_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 480, 320, 40));
+
+        SF_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
+        SF_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        SF_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                SF_Button_PanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                SF_Button_PanelMouseExited(evt);
+            }
+        });
+        SF_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        SP_SF_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
+        SP_SF_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
+        SP_SF_Button_Label.setText("Student Financials");
+        SF_Button_Panel.add(SP_SF_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
+
+        SP_SF_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        SP_SF_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Student Financials 16x16.png"))); // NOI18N
+        SF_Button_Panel.add(SP_SF_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
+
+        Student_SRE_Left_Panel.add(SF_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 520, 320, 40));
+
+        SP_Logout_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Logout Icon 32x32.png"))); // NOI18N
+        SP_Logout_Button_Icon.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        SP_Logout_Button_Icon.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                SP_Logout_Button_IconMouseClicked(evt);
+            }
+        });
+        Student_SRE_Left_Panel.add(SP_Logout_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 650, 32, 32));
+
+        SP_Logout_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 25)); // NOI18N
+        SP_Logout_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
+        SP_Logout_Button_Label.setText("Logout");
+        SP_Logout_Button_Label.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        SP_Logout_Button_Label.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                SP_Logout_Button_LabelMouseClicked(evt);
+            }
+        });
+        Student_SRE_Left_Panel.add(SP_Logout_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 645, 75, 40));
+
+        Student_SRE_Panel.add(Student_SRE_Left_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 320, 700));
+
+        Main_Frame_Panel.add(Student_SRE_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 1275, 700));
+
+        Admin_AECG_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        Admin_AECG_Left_Panel.setBackground(new java.awt.Color(85, 142, 203));
+        Admin_AECG_Left_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        Admin_AECG_Img.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        Admin_AECG_Img.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/custom user.png"))); // NOI18N
+        Admin_AECG_Left_Panel.add(Admin_AECG_Img, new org.netbeans.lib.awtextra.AbsoluteConstraints(95, 30, 130, 130));
+
+        Admin_AECG_Name_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 25)); // NOI18N
+        Admin_AECG_Name_Label.setForeground(new java.awt.Color(255, 255, 255));
+        Admin_AECG_Name_Label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        Admin_AECG_Name_Label.setText("Admin Name");
+        Admin_AECG_Left_Panel.add(Admin_AECG_Name_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 160, 320, 40));
+
+        Admin_AECG_Discription_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        Admin_AECG_Discription_Label.setForeground(new java.awt.Color(255, 255, 255));
+        Admin_AECG_Discription_Label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        Admin_AECG_Discription_Label.setText("Admin | University of Houston");
+        Admin_AECG_Left_Panel.add(Admin_AECG_Discription_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 200, 320, 20));
+
+        AECG_Home_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
+        AECG_Home_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AECG_Home_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                AECG_Home_Button_PanelMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                AECG_Home_Button_PanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                AECG_Home_Button_PanelMouseExited(evt);
+            }
+        });
+        AECG_Home_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        AECG_Home_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
+        AECG_Home_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
+        AECG_Home_Button_Label.setText("Home");
+        AECG_Home_Button_Panel.add(AECG_Home_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
+
+        AECG_Home_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        AECG_Home_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Home Icon 16x16.png"))); // NOI18N
+        AECG_Home_Button_Panel.add(AECG_Home_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
+
+        Admin_AECG_Left_Panel.add(AECG_Home_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 280, 320, 40));
+
+        AECG_MC_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
+        AECG_MC_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AECG_MC_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                AECG_MC_Button_PanelMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                AECG_MC_Button_PanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                AECG_MC_Button_PanelMouseExited(evt);
+            }
+        });
+        AECG_MC_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        AECG_MC_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
+        AECG_MC_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
+        AECG_MC_Button_Label.setText("Manage Courses");
+        AECG_MC_Button_Panel.add(AECG_MC_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
+
+        AECG_MC_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        AECG_MC_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Student Center Icon 16x16.png"))); // NOI18N
+        AECG_MC_Button_Panel.add(AECG_MC_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
+
+        Admin_AECG_Left_Panel.add(AECG_MC_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 320, 320, 40));
+
+        AECG_MS_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
+        AECG_MS_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AECG_MS_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                AECG_MS_Button_PanelMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                AECG_MS_Button_PanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                AECG_MS_Button_PanelMouseExited(evt);
+            }
+        });
+        AECG_MS_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        AECG_MS_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
+        AECG_MS_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
+        AECG_MS_Button_Label.setText("Manage Students");
+        AECG_MS_Button_Panel.add(AECG_MS_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
+
+        AECG_MS_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        AECG_MS_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Student Records Enrollment 16x16.png"))); // NOI18N
+        AECG_MS_Button_Panel.add(AECG_MS_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
+
+        Admin_AECG_Left_Panel.add(AECG_MS_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 360, 320, 40));
+
+        AECG_SC_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
+        AECG_SC_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AECG_SC_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                AECG_SC_Button_PanelMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                AECG_SC_Button_PanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                AECG_SC_Button_PanelMouseExited(evt);
+            }
+        });
+        AECG_SC_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        AECG_SC_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
+        AECG_SC_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
+        AECG_SC_Button_Label.setText("Student Courses");
+        AECG_SC_Button_Panel.add(AECG_SC_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
+
+        AECG_SC_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        AECG_SC_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Student Communication Center 16x16.png"))); // NOI18N
+        AECG_SC_Button_Panel.add(AECG_SC_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
+
+        Admin_AECG_Left_Panel.add(AECG_SC_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 400, 320, 40));
+
+        AECG_AECG_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
+        AECG_AECG_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AECG_AECG_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                AECG_AECG_Button_PanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                AECG_AECG_Button_PanelMouseExited(evt);
+            }
+        });
+        AECG_AECG_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        AECG_AECG_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
+        AECG_AECG_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
+        AECG_AECG_Button_Label.setText("Assign Exam & Course Grades");
+        AECG_AECG_Button_Panel.add(AECG_AECG_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
+
+        AECG_AECG_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        AECG_AECG_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Academic Advising 16x16.png"))); // NOI18N
+        AECG_AECG_Button_Panel.add(AECG_AECG_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
+
+        Admin_AECG_Left_Panel.add(AECG_AECG_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 440, 320, 40));
+
+        AECG_SFA_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
+        AECG_SFA_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AECG_SFA_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                AECG_SFA_Button_PanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                AECG_SFA_Button_PanelMouseExited(evt);
+            }
+        });
+        AECG_SFA_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        AECG_SFA_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
+        AECG_SFA_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
+        AECG_SFA_Button_Label.setText("Scholarship & Financial Aid");
+        AECG_SFA_Button_Panel.add(AECG_SFA_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
+
+        AECG_SFA_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        AECG_SFA_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Scholarship Financial Aid 16x16.png"))); // NOI18N
+        AECG_SFA_Button_Panel.add(AECG_SFA_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
+
+        Admin_AECG_Left_Panel.add(AECG_SFA_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 480, 320, 40));
+
+        AECG_SF_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
+        AECG_SF_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AECG_SF_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                AECG_SF_Button_PanelMouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                AECG_SF_Button_PanelMouseExited(evt);
+            }
+        });
+        AECG_SF_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        AECG_SF_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
+        AECG_SF_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
+        AECG_SF_Button_Label.setText("Student Financials");
+        AECG_SF_Button_Panel.add(AECG_SF_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
+
+        AECG_SF_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        AECG_SF_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Student Financials 16x16.png"))); // NOI18N
+        AECG_SF_Button_Panel.add(AECG_SF_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
+
+        Admin_AECG_Left_Panel.add(AECG_SF_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 520, 320, 40));
+
+        AECG_Logout_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Logout Icon 32x32.png"))); // NOI18N
+        AECG_Logout_Button_Icon.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AECG_Logout_Button_Icon.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                AECG_Logout_Button_IconMouseClicked(evt);
+            }
+        });
+        Admin_AECG_Left_Panel.add(AECG_Logout_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 650, 32, 32));
+
+        AECG_Logout_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 25)); // NOI18N
+        AECG_Logout_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
+        AECG_Logout_Button_Label.setText("Logout");
+        AECG_Logout_Button_Label.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AECG_Logout_Button_Label.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                AECG_Logout_Button_LabelMouseClicked(evt);
+            }
+        });
+        Admin_AECG_Left_Panel.add(AECG_Logout_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 645, 75, 40));
+
+        Admin_AECG_Panel.add(Admin_AECG_Left_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 320, 700));
+
+        Admin_AECG_Right_Panel.setBackground(new java.awt.Color(242, 242, 242));
+        Admin_AECG_Right_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        AECG_Assign_Course_Grade_Panel.setBackground(new java.awt.Color(255, 255, 255));
+        AECG_Assign_Course_Grade_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        AECG_Assign_Exam_Grades_Header_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
+        AECG_Assign_Exam_Grades_Header_Label.setText("Course Grade");
+        AECG_Assign_Course_Grade_Panel.add(AECG_Assign_Exam_Grades_Header_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 210, 30));
+
+        AECG_Course_Grades_Table.setAutoCreateRowSorter(true);
+        AECG_Course_Grades_Table.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 12)); // NOI18N
+        AECG_Course_Grades_Table.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Class ID", "COURSE DESCRIPTION", "UNITS", "GRADE", "POINTS"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, true, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        AECG_Course_Grades_Table.setGridColor(new java.awt.Color(0, 41, 85));
+        AECG_Course_Grades_Table.setIntercellSpacing(new java.awt.Dimension(0, 0));
+        AECG_Course_Grades_Table.setRowHeight(20);
+        AECG_Course_Grades_Table.setShowGrid(true);
+        AECG_GPA_Table_ScrollPane.setViewportView(AECG_Course_Grades_Table);
+
+        AECG_Assign_Course_Grade_Panel.add(AECG_GPA_Table_ScrollPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 60, 465, 265));
+
+        AECG_Save_Button.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        AECG_Save_Button.setText("SAVE");
+        AECG_Save_Button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AECG_Save_Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                AECG_Save_ButtonActionPerformed(evt);
+            }
+        });
+        AECG_Assign_Course_Grade_Panel.add(AECG_Save_Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(385, 10, 90, 40));
+
+        Admin_AECG_Right_Panel.add(AECG_Assign_Course_Grade_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 355, 485, 335));
+
+        AECG_Instructor_Course_Panel.setBackground(new java.awt.Color(255, 255, 255));
+        AECG_Instructor_Course_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        AECG_Select_Student_Course_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
+        AECG_Select_Student_Course_Heading_Label.setText("Select Student & Course");
+        AECG_Instructor_Course_Panel.add(AECG_Select_Student_Course_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 230, 30));
+
+        AECG_Search_Button_Panel.setBackground(new java.awt.Color(255, 255, 255));
+        AECG_Search_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AECG_Search_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        SC_Search_Button_Icon1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Search_Icon_20x20.png"))); // NOI18N
+        AECG_Search_Button_Panel.add(SC_Search_Button_Icon1, new org.netbeans.lib.awtextra.AbsoluteConstraints(5, 0, 25, 33));
+
+        AECG_Instructor_Course_Panel.add(AECG_Search_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(887, 11, 30, 33));
+
+        AECG_Search_Placeholder_Field.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 25)); // NOI18N
+        AECG_Search_Placeholder_Field.setForeground(new java.awt.Color(153, 153, 153));
+        AECG_Search_Placeholder_Field.setText("Search Student");
+        AECG_Search_Placeholder_Field.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+        AECG_Instructor_Course_Panel.add(AECG_Search_Placeholder_Field, new org.netbeans.lib.awtextra.AbsoluteConstraints(702, 12, 190, 30));
+
+        AECG_Search_Student_Field.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
+        AECG_Search_Student_Field.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), javax.swing.BorderFactory.createEmptyBorder(0, 10, 1, 1)));
+        AECG_Search_Student_Field.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                AECG_Search_Student_FieldFocusLost(evt);
+            }
+        });
+        AECG_Search_Student_Field.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                AECG_Search_Student_FieldKeyReleased(evt);
+            }
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                AECG_Search_Student_FieldKeyTyped(evt);
+            }
+        });
+        AECG_Instructor_Course_Panel.add(AECG_Search_Student_Field, new org.netbeans.lib.awtextra.AbsoluteConstraints(692, 10, 230, 35));
+
+        AECG_Students_Table.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        AECG_Students_Table.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "STUDENT ID", "FIRST NAME", "LAST NAME"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class, java.lang.String.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
+        AECG_Students_Table.setRowHeight(20);
+        AECG_Students_Table.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                AECG_Students_TableMouseClicked(evt);
+            }
+        });
+        AECG_Students_Table_ScrollPane.setViewportView(AECG_Students_Table);
+        if (AECG_Students_Table.getColumnModel().getColumnCount() > 0) {
+            AECG_Students_Table.getColumnModel().getColumn(0).setHeaderValue("STUDENT ID");
+            AECG_Students_Table.getColumnModel().getColumn(1).setHeaderValue("FIRST NAME");
+            AECG_Students_Table.getColumnModel().getColumn(2).setHeaderValue("LAST NAME");
+        }
+
+        AECG_Instructor_Course_Panel.add(AECG_Students_Table_ScrollPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 55, 430, 270));
+
+        AECG_Registered_Courses_Table.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        AECG_Registered_Courses_Table.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Class ID", "Course No", "Course Description", "Instructor"
+            }
+        ));
+        AECG_Registered_Courses_Table.setRowHeight(20);
+        AECG_Registered_Courses_Table.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                AECG_Registered_Courses_TableMouseClicked(evt);
+            }
+        });
+        AECG_Registered_Courses_Table_ScrollPane.setViewportView(AECG_Registered_Courses_Table);
+
+        AECG_Instructor_Course_Panel.add(AECG_Registered_Courses_Table_ScrollPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 55, 475, 270));
+
+        Admin_AECG_Right_Panel.add(AECG_Instructor_Course_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 935, 335));
+
+        AECG_Assign_Exam_Grade_Panel.setBackground(new java.awt.Color(255, 255, 255));
+        AECG_Assign_Exam_Grade_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        AECG_Assign_Exam_Grades_Header_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
+        AECG_Assign_Exam_Grades_Header_Label1.setText("Assign Exam Grade");
+        AECG_Assign_Exam_Grade_Panel.add(AECG_Assign_Exam_Grades_Header_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 210, 30));
+
+        AECG_Exam_Name_ComboBox.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        AECG_Exam_Name_ComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "<Select Exam Name>", "Midterm 1", "Midterm 2", "Final Exam" }));
+        AECG_Exam_Name_ComboBox.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AECG_Exam_Name_ComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                AECG_Exam_Name_ComboBoxActionPerformed(evt);
+            }
+        });
+        AECG_Assign_Exam_Grade_Panel.add(AECG_Exam_Name_ComboBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(105, 70, 220, 40));
+
+        AECG_Exam_Weight_Field.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 25)); // NOI18N
+        AECG_Exam_Weight_Field.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        AECG_Exam_Weight_Field.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), "EXAM WEIGHT (%)", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Yu Gothic UI Light", 0, 12))); // NOI18N
+        AECG_Assign_Exam_Grade_Panel.add(AECG_Exam_Weight_Field, new org.netbeans.lib.awtextra.AbsoluteConstraints(105, 130, 220, 50));
+
+        AECG_Score_Received_Field.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 25)); // NOI18N
+        AECG_Score_Received_Field.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        AECG_Score_Received_Field.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), "SCORE RECEIVED (%)", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Yu Gothic UI Light", 0, 12))); // NOI18N
+        AECG_Assign_Exam_Grade_Panel.add(AECG_Score_Received_Field, new org.netbeans.lib.awtextra.AbsoluteConstraints(105, 200, 220, 50));
+
+        AECG_Assign_Button.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        AECG_Assign_Button.setText("ASSIGN");
+        AECG_Assign_Button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AECG_Assign_Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                AECG_Assign_ButtonActionPerformed(evt);
+            }
+        });
+        AECG_Assign_Exam_Grade_Panel.add(AECG_Assign_Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(333, 283, 90, 40));
+
+        AECG_Update_Button.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        AECG_Update_Button.setText("UPDATE");
+        AECG_Update_Button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AECG_Update_Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                AECG_Update_ButtonActionPerformed(evt);
+            }
+        });
+        AECG_Assign_Exam_Grade_Panel.add(AECG_Update_Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(174, 283, 90, 40));
+
+        AECG_Delete_Button.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
+        AECG_Delete_Button.setText("DELETE");
+        AECG_Delete_Button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        AECG_Delete_Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                AECG_Delete_ButtonActionPerformed(evt);
+            }
+        });
+        AECG_Assign_Exam_Grade_Panel.add(AECG_Delete_Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 283, 90, 40));
+
+        Admin_AECG_Right_Panel.add(AECG_Assign_Exam_Grade_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 355, 440, 335));
+
+        Admin_AECG_Panel.add(Admin_AECG_Right_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 0, 955, 700));
+
+        Main_Frame_Panel.add(Admin_AECG_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 1275, 700));
 
         Student_Main_Page_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -1537,824 +2535,6 @@ public class MainFrame extends javax.swing.JFrame {
         Admin_Main_Page_Panel.add(Admin_Main_Page_Right_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 0, 955, 700));
 
         Main_Frame_Panel.add(Admin_Main_Page_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 1275, 700));
-
-        Student_SRE_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        Student_SRE_Right_Panel.setBackground(new java.awt.Color(242, 242, 242));
-        Student_SRE_Right_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        SP_Student_Information_Panel.setBackground(new java.awt.Color(255, 255, 255));
-        SP_Student_Information_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        SP_Student_Information_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
-        SP_Student_Information_Heading_Label.setText("Student Information");
-        SP_Student_Information_Panel.add(SP_Student_Information_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 310, 30));
-
-        SP_Student_ID_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SP_Student_ID_Heading_Label.setText("Student ID");
-        SP_Student_Information_Panel.add(SP_Student_ID_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 45, 80, 20));
-
-        SP_Student_ID_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SP_Student_ID_Label.setForeground(new java.awt.Color(102, 102, 102));
-        SP_Student_ID_Label.setText("ID-0001");
-        SP_Student_Information_Panel.add(SP_Student_ID_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 45, 160, 20));
-
-        SP_Student_Status_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SP_Student_Status_Heading_Label.setText("Student Status");
-        SP_Student_Information_Panel.add(SP_Student_Status_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 90, 100, 20));
-
-        SP_Student_Status_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SP_Student_Status_Label.setForeground(new java.awt.Color(102, 102, 102));
-        SP_Student_Status_Label.setText("Active");
-        SP_Student_Information_Panel.add(SP_Student_Status_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 90, 190, 20));
-
-        SP_Residency_Status_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SP_Residency_Status_Heading_Label.setText("Residency Status");
-        SP_Student_Information_Panel.add(SP_Residency_Status_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 120, 110, 20));
-
-        SP_Residency_Status_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SP_Residency_Status_Label.setForeground(new java.awt.Color(102, 102, 102));
-        SP_Residency_Status_Label.setText("Non-Resident");
-        SP_Student_Information_Panel.add(SP_Residency_Status_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 120, 190, 20));
-
-        SP_Class_Standing_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SP_Class_Standing_Heading_Label.setText("Class Standing");
-        SP_Student_Information_Panel.add(SP_Class_Standing_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 150, 110, 20));
-
-        SP_Class_Standing_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SP_Class_Standing_Label.setForeground(new java.awt.Color(102, 102, 102));
-        SP_Class_Standing_Label.setText("Senior");
-        SP_Student_Information_Panel.add(SP_Class_Standing_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 150, 190, 20));
-
-        SP_Location_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SP_Location_Heading_Label.setText("Location");
-        SP_Student_Information_Panel.add(SP_Location_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 180, 110, 20));
-
-        SP_Location_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SP_Location_Label.setForeground(new java.awt.Color(102, 102, 102));
-        SP_Location_Label.setText("Main Campus");
-        SP_Student_Information_Panel.add(SP_Location_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 180, 190, 20));
-
-        SP_Major_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SP_Major_Heading_Label.setText("Major");
-        SP_Student_Information_Panel.add(SP_Major_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 210, 110, 20));
-
-        SP_Major_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SP_Major_Label.setForeground(new java.awt.Color(102, 102, 102));
-        SP_Major_Label.setText("Computer Science");
-        SP_Student_Information_Panel.add(SP_Major_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 210, 190, 20));
-
-        SP_Contact_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
-        SP_Contact_Label.setText("Contact");
-        SP_Student_Information_Panel.add(SP_Contact_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 240, 460, 30));
-
-        SP_Phone_Number_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SP_Phone_Number_Heading_Label.setText("Phone Number");
-        SP_Student_Information_Panel.add(SP_Phone_Number_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 280, 100, 20));
-
-        SP_Phone_Number_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SP_Phone_Number_Label.setForeground(new java.awt.Color(102, 102, 102));
-        SP_Phone_Number_Label.setText("832-435-8524");
-        SP_Student_Information_Panel.add(SP_Phone_Number_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 280, 190, 20));
-
-        SP_Email_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SP_Email_Heading_Label.setText("E-Mail");
-        SP_Student_Information_Panel.add(SP_Email_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 310, 100, 20));
-
-        SP_Email_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SP_Email_Label.setForeground(new java.awt.Color(102, 102, 102));
-        SP_Email_Label.setText("student@uh.edu");
-        SP_Student_Information_Panel.add(SP_Email_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 310, 190, 20));
-
-        Student_SRE_Right_Panel.add(SP_Student_Information_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 350, 350));
-
-        SP_Registered_Courses_Panel.setBackground(new java.awt.Color(255, 255, 255));
-        SP_Registered_Courses_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        SP_Registered_Courses_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
-        SP_Registered_Courses_Heading_Label.setText("Registered Courses (Current Semester)");
-        SP_Registered_Courses_Panel.add(SP_Registered_Courses_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 560, 30));
-
-        SP_Registered_Courses_Table.setAutoCreateRowSorter(true);
-        SP_Registered_Courses_Table.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 12)); // NOI18N
-        SP_Registered_Courses_Table.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "COURSE #", "COURSE DESCRIPTION", "ROOM", "INSTRUCTOR", "START DATE", "END DATE"
-            }
-        ) {
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false
-            };
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
-        SP_Registered_Courses_Table.setGridColor(new java.awt.Color(0, 41, 85));
-        SP_Registered_Courses_Table.setIntercellSpacing(new java.awt.Dimension(0, 0));
-        SP_Registered_Courses_Table.setRowHeight(20);
-        SP_Registered_Courses_Table.setShowGrid(true);
-        SP_Registered_Courses_Table_ScrollPane.setViewportView(SP_Registered_Courses_Table);
-
-        SP_Registered_Courses_Panel.add(SP_Registered_Courses_Table_ScrollPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 60, 560, 280));
-
-        Student_SRE_Right_Panel.add(SP_Registered_Courses_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 10, 580, 350));
-
-        SP_Exam_Grades_Panel.setBackground(new java.awt.Color(255, 255, 255));
-        SP_Exam_Grades_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        SP_Exam_Grades_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
-        SP_Exam_Grades_Heading_Label.setText("Exam Grades");
-        SP_Exam_Grades_Panel.add(SP_Exam_Grades_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 260, 30));
-
-        SP_Course_Selection_ComboBox.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        SP_Course_Selection_ComboBox.setMaximumRowCount(10);
-        SP_Course_Selection_ComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "<Select Course>" }));
-        SP_Course_Selection_ComboBox.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        SP_Course_Selection_ComboBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                SP_Course_Selection_ComboBoxActionPerformed(evt);
-            }
-        });
-        SP_Exam_Grades_Panel.add(SP_Course_Selection_ComboBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 10, 190, 30));
-
-        SP_Exam_Grades_Table.setAutoCreateRowSorter(true);
-        SP_Exam_Grades_Table.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 12)); // NOI18N
-        SP_Exam_Grades_Table.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "EXAM NAME", "WEIGHT (%)", "SCORE RECEIVED (%)", "GRADE EARNED (%)"
-            }
-        ) {
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false
-            };
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
-        SP_Exam_Grades_Table.setGridColor(new java.awt.Color(0, 41, 85));
-        SP_Exam_Grades_Table.setIntercellSpacing(new java.awt.Dimension(0, 0));
-        SP_Exam_Grades_Table.setRowHeight(20);
-        SP_Exam_Grades_Table.setShowGrid(true);
-        SP_Exam_Grades_Table_ScrollPane.setViewportView(SP_Exam_Grades_Table);
-
-        SP_Exam_Grades_Panel.add(SP_Exam_Grades_Table_ScrollPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 60, 460, 250));
-
-        Student_SRE_Right_Panel.add(SP_Exam_Grades_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 370, 480, 320));
-
-        SP_GPA_Panel.setBackground(new java.awt.Color(255, 255, 255));
-        SP_GPA_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        SP_GPA_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
-        SP_GPA_Heading_Label.setText("GPA (Current Semester)");
-        SP_GPA_Panel.add(SP_GPA_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 270, 30));
-
-        SP_GPA_Table.setAutoCreateRowSorter(true);
-        SP_GPA_Table.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 12)); // NOI18N
-        SP_GPA_Table.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "COURSE #", "COURSE DESCRIPTION", "UNITS", "GRADE", "POINTS"
-            }
-        ) {
-            boolean[] canEdit = new boolean [] {
-                false, false, false, true, false
-            };
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
-        SP_GPA_Table.setGridColor(new java.awt.Color(0, 41, 85));
-        SP_GPA_Table.setIntercellSpacing(new java.awt.Dimension(0, 0));
-        SP_GPA_Table.setRowHeight(20);
-        SP_GPA_Table.setShowGrid(true);
-        SP_GPA_Table_ScrollPane.setViewportView(SP_GPA_Table);
-
-        SP_GPA_Panel.add(SP_GPA_Table_ScrollPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 60, 430, 180));
-
-        SP_GPA_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 40)); // NOI18N
-        SP_GPA_Label.setForeground(new java.awt.Color(0, 41, 85));
-        SP_GPA_Label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        SP_GPA_Panel.add(SP_GPA_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 275, 430, 40));
-
-        jButton1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        jButton1.setText("Calculate GPA");
-        jButton1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-        SP_GPA_Panel.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 13, -1, 30));
-
-        SP_GPA_Formula_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 25)); // NOI18N
-        SP_GPA_Formula_Label.setForeground(new java.awt.Color(0, 41, 85));
-        SP_GPA_Formula_Label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        SP_GPA_Panel.add(SP_GPA_Formula_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 237, 430, 40));
-
-        Student_SRE_Right_Panel.add(SP_GPA_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(500, 370, 450, 320));
-
-        Student_SRE_Panel.add(Student_SRE_Right_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 0, 955, 700));
-
-        Student_SRE_Left_Panel.setBackground(new java.awt.Color(85, 142, 203));
-        Student_SRE_Left_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        User_Img.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        User_Img.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/custom user.png"))); // NOI18N
-        Student_SRE_Left_Panel.add(User_Img, new org.netbeans.lib.awtextra.AbsoluteConstraints(95, 30, 130, 130));
-
-        Student_Name_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 25)); // NOI18N
-        Student_Name_Label.setForeground(new java.awt.Color(255, 255, 255));
-        Student_Name_Label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        Student_Name_Label.setText("Student Name");
-        Student_SRE_Left_Panel.add(Student_Name_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 160, 320, 40));
-
-        Student_Discription_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        Student_Discription_Label.setForeground(new java.awt.Color(255, 255, 255));
-        Student_Discription_Label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        Student_Discription_Label.setText("Student | University of Houston");
-        Student_SRE_Left_Panel.add(Student_Discription_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 200, 320, 20));
-
-        Home_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
-        Home_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        Home_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                Home_Button_PanelMouseClicked(evt);
-            }
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                Home_Button_PanelMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                Home_Button_PanelMouseExited(evt);
-            }
-        });
-        Home_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        SP_Home_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
-        SP_Home_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
-        SP_Home_Button_Label.setText("Home");
-        Home_Button_Panel.add(SP_Home_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
-
-        SP_Home_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        SP_Home_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Home Icon 16x16.png"))); // NOI18N
-        Home_Button_Panel.add(SP_Home_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
-
-        Student_SRE_Left_Panel.add(Home_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 280, 320, 40));
-
-        SC_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
-        SC_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        SC_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                SC_Button_PanelMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                SC_Button_PanelMouseExited(evt);
-            }
-        });
-        SC_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        SP_SC_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
-        SP_SC_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
-        SP_SC_Button_Label.setText("Student Center");
-        SC_Button_Panel.add(SP_SC_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
-
-        SP_SC_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        SP_SC_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Student Center Icon 16x16.png"))); // NOI18N
-        SC_Button_Panel.add(SP_SC_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
-
-        Student_SRE_Left_Panel.add(SC_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 320, 320, 40));
-
-        SCC_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
-        SCC_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        SCC_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                SCC_Button_PanelMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                SCC_Button_PanelMouseExited(evt);
-            }
-        });
-        SCC_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        SP_SCC_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
-        SP_SCC_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
-        SP_SCC_Button_Label.setText("Student Communication Center");
-        SCC_Button_Panel.add(SP_SCC_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
-
-        SP_SCC_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        SP_SCC_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Student Communication Center 16x16.png"))); // NOI18N
-        SCC_Button_Panel.add(SP_SCC_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
-
-        Student_SRE_Left_Panel.add(SCC_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 360, 320, 40));
-
-        AA_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
-        AA_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        AA_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                AA_Button_PanelMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                AA_Button_PanelMouseExited(evt);
-            }
-        });
-        AA_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        SP_AA_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
-        SP_AA_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
-        SP_AA_Button_Label.setText("Academic Advising");
-        AA_Button_Panel.add(SP_AA_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
-
-        SP_AA_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        SP_AA_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Academic Advising 16x16.png"))); // NOI18N
-        AA_Button_Panel.add(SP_AA_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
-
-        Student_SRE_Left_Panel.add(AA_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 400, 320, 40));
-
-        SRE_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
-        SRE_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        SRE_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                SRE_Button_PanelMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                SRE_Button_PanelMouseExited(evt);
-            }
-        });
-        SRE_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        SP_SRE_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
-        SP_SRE_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
-        SP_SRE_Button_Label.setText("Student Records & Enrollment");
-        SRE_Button_Panel.add(SP_SRE_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
-
-        SP_SRE_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        SP_SRE_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Student Records Enrollment 16x16.png"))); // NOI18N
-        SRE_Button_Panel.add(SP_SRE_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
-
-        Student_SRE_Left_Panel.add(SRE_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 440, 320, 40));
-
-        SFA_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
-        SFA_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        SFA_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                SFA_Button_PanelMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                SFA_Button_PanelMouseExited(evt);
-            }
-        });
-        SFA_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        SP_SFA_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
-        SP_SFA_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
-        SP_SFA_Button_Label.setText("Scholarship & Financial Aid");
-        SFA_Button_Panel.add(SP_SFA_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
-
-        SP_SFA_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        SP_SFA_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Scholarship Financial Aid 16x16.png"))); // NOI18N
-        SFA_Button_Panel.add(SP_SFA_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
-
-        Student_SRE_Left_Panel.add(SFA_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 480, 320, 40));
-
-        SF_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
-        SF_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        SF_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                SF_Button_PanelMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                SF_Button_PanelMouseExited(evt);
-            }
-        });
-        SF_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        SP_SF_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
-        SP_SF_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
-        SP_SF_Button_Label.setText("Student Financials");
-        SF_Button_Panel.add(SP_SF_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
-
-        SP_SF_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        SP_SF_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Student Financials 16x16.png"))); // NOI18N
-        SF_Button_Panel.add(SP_SF_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
-
-        Student_SRE_Left_Panel.add(SF_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 520, 320, 40));
-
-        SP_Logout_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Logout Icon 32x32.png"))); // NOI18N
-        SP_Logout_Button_Icon.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        SP_Logout_Button_Icon.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                SP_Logout_Button_IconMouseClicked(evt);
-            }
-        });
-        Student_SRE_Left_Panel.add(SP_Logout_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 650, 32, 32));
-
-        SP_Logout_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 25)); // NOI18N
-        SP_Logout_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
-        SP_Logout_Button_Label.setText("Logout");
-        SP_Logout_Button_Label.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        SP_Logout_Button_Label.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                SP_Logout_Button_LabelMouseClicked(evt);
-            }
-        });
-        Student_SRE_Left_Panel.add(SP_Logout_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 645, 75, 40));
-
-        Student_SRE_Panel.add(Student_SRE_Left_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 320, 700));
-
-        Main_Frame_Panel.add(Student_SRE_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 1275, 700));
-
-        Admin_AECG_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        Admin_AECG_Left_Panel.setBackground(new java.awt.Color(85, 142, 203));
-        Admin_AECG_Left_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        Admin_AECG_Img.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        Admin_AECG_Img.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/custom user.png"))); // NOI18N
-        Admin_AECG_Left_Panel.add(Admin_AECG_Img, new org.netbeans.lib.awtextra.AbsoluteConstraints(95, 30, 130, 130));
-
-        Admin_AECG_Name_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 25)); // NOI18N
-        Admin_AECG_Name_Label.setForeground(new java.awt.Color(255, 255, 255));
-        Admin_AECG_Name_Label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        Admin_AECG_Name_Label.setText("Admin Name");
-        Admin_AECG_Left_Panel.add(Admin_AECG_Name_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 160, 320, 40));
-
-        Admin_AECG_Discription_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        Admin_AECG_Discription_Label.setForeground(new java.awt.Color(255, 255, 255));
-        Admin_AECG_Discription_Label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        Admin_AECG_Discription_Label.setText("Admin | University of Houston");
-        Admin_AECG_Left_Panel.add(Admin_AECG_Discription_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 200, 320, 20));
-
-        AECG_Home_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
-        AECG_Home_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        AECG_Home_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                AECG_Home_Button_PanelMouseClicked(evt);
-            }
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                AECG_Home_Button_PanelMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                AECG_Home_Button_PanelMouseExited(evt);
-            }
-        });
-        AECG_Home_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        AECG_Home_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
-        AECG_Home_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
-        AECG_Home_Button_Label.setText("Home");
-        AECG_Home_Button_Panel.add(AECG_Home_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
-
-        AECG_Home_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        AECG_Home_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Home Icon 16x16.png"))); // NOI18N
-        AECG_Home_Button_Panel.add(AECG_Home_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
-
-        Admin_AECG_Left_Panel.add(AECG_Home_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 280, 320, 40));
-
-        AECG_MC_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
-        AECG_MC_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        AECG_MC_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                AECG_MC_Button_PanelMouseClicked(evt);
-            }
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                AECG_MC_Button_PanelMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                AECG_MC_Button_PanelMouseExited(evt);
-            }
-        });
-        AECG_MC_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        AECG_MC_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
-        AECG_MC_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
-        AECG_MC_Button_Label.setText("Manage Courses");
-        AECG_MC_Button_Panel.add(AECG_MC_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
-
-        AECG_MC_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        AECG_MC_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Student Center Icon 16x16.png"))); // NOI18N
-        AECG_MC_Button_Panel.add(AECG_MC_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
-
-        Admin_AECG_Left_Panel.add(AECG_MC_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 320, 320, 40));
-
-        AECG_MS_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
-        AECG_MS_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        AECG_MS_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                AECG_MS_Button_PanelMouseClicked(evt);
-            }
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                AECG_MS_Button_PanelMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                AECG_MS_Button_PanelMouseExited(evt);
-            }
-        });
-        AECG_MS_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        AECG_MS_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
-        AECG_MS_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
-        AECG_MS_Button_Label.setText("Manage Students");
-        AECG_MS_Button_Panel.add(AECG_MS_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
-
-        AECG_MS_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        AECG_MS_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Student Records Enrollment 16x16.png"))); // NOI18N
-        AECG_MS_Button_Panel.add(AECG_MS_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
-
-        Admin_AECG_Left_Panel.add(AECG_MS_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 360, 320, 40));
-
-        AECG_SC_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
-        AECG_SC_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        AECG_SC_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                AECG_SC_Button_PanelMouseClicked(evt);
-            }
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                AECG_SC_Button_PanelMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                AECG_SC_Button_PanelMouseExited(evt);
-            }
-        });
-        AECG_SC_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        AECG_SC_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
-        AECG_SC_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
-        AECG_SC_Button_Label.setText("Student Courses");
-        AECG_SC_Button_Panel.add(AECG_SC_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
-
-        AECG_SC_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        AECG_SC_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Student Communication Center 16x16.png"))); // NOI18N
-        AECG_SC_Button_Panel.add(AECG_SC_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
-
-        Admin_AECG_Left_Panel.add(AECG_SC_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 400, 320, 40));
-
-        AECG_AECG_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
-        AECG_AECG_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        AECG_AECG_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                AECG_AECG_Button_PanelMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                AECG_AECG_Button_PanelMouseExited(evt);
-            }
-        });
-        AECG_AECG_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        AECG_AECG_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
-        AECG_AECG_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
-        AECG_AECG_Button_Label.setText("Assign Exam & Course Grades");
-        AECG_AECG_Button_Panel.add(AECG_AECG_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
-
-        AECG_AECG_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        AECG_AECG_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Academic Advising 16x16.png"))); // NOI18N
-        AECG_AECG_Button_Panel.add(AECG_AECG_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
-
-        Admin_AECG_Left_Panel.add(AECG_AECG_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 440, 320, 40));
-
-        AECG_SFA_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
-        AECG_SFA_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        AECG_SFA_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                AECG_SFA_Button_PanelMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                AECG_SFA_Button_PanelMouseExited(evt);
-            }
-        });
-        AECG_SFA_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        AECG_SFA_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
-        AECG_SFA_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
-        AECG_SFA_Button_Label.setText("Scholarship & Financial Aid");
-        AECG_SFA_Button_Panel.add(AECG_SFA_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
-
-        AECG_SFA_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        AECG_SFA_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Scholarship Financial Aid 16x16.png"))); // NOI18N
-        AECG_SFA_Button_Panel.add(AECG_SFA_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
-
-        Admin_AECG_Left_Panel.add(AECG_SFA_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 480, 320, 40));
-
-        AECG_SF_Button_Panel.setBackground(new java.awt.Color(85, 142, 203));
-        AECG_SF_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        AECG_SF_Button_Panel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                AECG_SF_Button_PanelMouseEntered(evt);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                AECG_SF_Button_PanelMouseExited(evt);
-            }
-        });
-        AECG_SF_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        AECG_SF_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 17)); // NOI18N
-        AECG_SF_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
-        AECG_SF_Button_Label.setText("Student Financials");
-        AECG_SF_Button_Panel.add(AECG_SF_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(65, 0, 250, 40));
-
-        AECG_SF_Button_Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        AECG_SF_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Student Financials 16x16.png"))); // NOI18N
-        AECG_SF_Button_Panel.add(AECG_SF_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 5, 35, 35));
-
-        Admin_AECG_Left_Panel.add(AECG_SF_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 520, 320, 40));
-
-        AECG_Logout_Button_Icon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Logout Icon 32x32.png"))); // NOI18N
-        AECG_Logout_Button_Icon.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        AECG_Logout_Button_Icon.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                AECG_Logout_Button_IconMouseClicked(evt);
-            }
-        });
-        Admin_AECG_Left_Panel.add(AECG_Logout_Button_Icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 650, 32, 32));
-
-        AECG_Logout_Button_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 25)); // NOI18N
-        AECG_Logout_Button_Label.setForeground(new java.awt.Color(255, 255, 255));
-        AECG_Logout_Button_Label.setText("Logout");
-        AECG_Logout_Button_Label.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        AECG_Logout_Button_Label.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                AECG_Logout_Button_LabelMouseClicked(evt);
-            }
-        });
-        Admin_AECG_Left_Panel.add(AECG_Logout_Button_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 645, 75, 40));
-
-        Admin_AECG_Panel.add(Admin_AECG_Left_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 320, 700));
-
-        Admin_AECG_Right_Panel.setBackground(new java.awt.Color(242, 242, 242));
-        Admin_AECG_Right_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        AECG_Assign_Course_Grade_Panel.setBackground(new java.awt.Color(255, 255, 255));
-        AECG_Assign_Course_Grade_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        AECG_Assign_Exam_Grades_Header_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
-        AECG_Assign_Exam_Grades_Header_Label.setText("Assign Course Grade");
-        AECG_Assign_Course_Grade_Panel.add(AECG_Assign_Exam_Grades_Header_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 210, 30));
-
-        Admin_AECG_Right_Panel.add(AECG_Assign_Course_Grade_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 355, 485, 335));
-
-        AECG_Instructor_Course_Panel.setBackground(new java.awt.Color(255, 255, 255));
-        AECG_Instructor_Course_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        AECG_Select_Student_Course_Heading_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
-        AECG_Select_Student_Course_Heading_Label.setText("Select Student & Course");
-        AECG_Instructor_Course_Panel.add(AECG_Select_Student_Course_Heading_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 230, 30));
-
-        AECG_Search_Button_Panel.setBackground(new java.awt.Color(255, 255, 255));
-        AECG_Search_Button_Panel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        AECG_Search_Button_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        SC_Search_Button_Icon1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/learning/management/system/resources/images/icons/Search_Icon_20x20.png"))); // NOI18N
-        AECG_Search_Button_Panel.add(SC_Search_Button_Icon1, new org.netbeans.lib.awtextra.AbsoluteConstraints(5, 0, 25, 33));
-
-        AECG_Instructor_Course_Panel.add(AECG_Search_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(887, 11, 30, 33));
-
-        AECG_Search_Placeholder_Field.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 25)); // NOI18N
-        AECG_Search_Placeholder_Field.setForeground(new java.awt.Color(153, 153, 153));
-        AECG_Search_Placeholder_Field.setText("Search Student");
-        AECG_Search_Placeholder_Field.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
-        AECG_Instructor_Course_Panel.add(AECG_Search_Placeholder_Field, new org.netbeans.lib.awtextra.AbsoluteConstraints(702, 12, 190, 30));
-
-        AECG_Search_Student_Field.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
-        AECG_Search_Student_Field.setBorder(javax.swing.BorderFactory.createCompoundBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), javax.swing.BorderFactory.createEmptyBorder(0, 10, 1, 1)));
-        AECG_Search_Student_Field.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                AECG_Search_Student_FieldFocusLost(evt);
-            }
-        });
-        AECG_Search_Student_Field.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent evt) {
-                AECG_Search_Student_FieldKeyReleased(evt);
-            }
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                AECG_Search_Student_FieldKeyTyped(evt);
-            }
-        });
-        AECG_Instructor_Course_Panel.add(AECG_Search_Student_Field, new org.netbeans.lib.awtextra.AbsoluteConstraints(692, 10, 230, 35));
-
-        AECG_Students_Table.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        AECG_Students_Table.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "STUDENT ID", "FIRST NAME", "LAST NAME"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-        });
-        AECG_Students_Table.setRowHeight(20);
-        AECG_Students_Table.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                AECG_Students_TableMouseClicked(evt);
-            }
-        });
-        AECG_Students_Table_ScrollPane.setViewportView(AECG_Students_Table);
-        if (AECG_Students_Table.getColumnModel().getColumnCount() > 0) {
-            AECG_Students_Table.getColumnModel().getColumn(0).setHeaderValue("STUDENT ID");
-            AECG_Students_Table.getColumnModel().getColumn(1).setHeaderValue("FIRST NAME");
-            AECG_Students_Table.getColumnModel().getColumn(2).setHeaderValue("LAST NAME");
-        }
-
-        AECG_Instructor_Course_Panel.add(AECG_Students_Table_ScrollPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 55, 430, 270));
-
-        AECG_Registered_Courses_Table.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        AECG_Registered_Courses_Table.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "Class ID", "Course No", "Course Description", "Instructor"
-            }
-        ));
-        AECG_Registered_Courses_Table.setRowHeight(20);
-        AECG_Registered_Courses_Table.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                AECG_Registered_Courses_TableMouseClicked(evt);
-            }
-        });
-        AECG_Registered_Courses_Table_ScrollPane.setViewportView(AECG_Registered_Courses_Table);
-
-        AECG_Instructor_Course_Panel.add(AECG_Registered_Courses_Table_ScrollPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 55, 475, 270));
-
-        Admin_AECG_Right_Panel.add(AECG_Instructor_Course_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 935, 335));
-
-        AECG_Assign_Exam_Grade_Panel.setBackground(new java.awt.Color(255, 255, 255));
-        AECG_Assign_Exam_Grade_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        AECG_Assign_Exam_Grades_Header_Label1.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 20)); // NOI18N
-        AECG_Assign_Exam_Grades_Header_Label1.setText("Assign Exam Grade");
-        AECG_Assign_Exam_Grade_Panel.add(AECG_Assign_Exam_Grades_Header_Label1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 210, 30));
-
-        AECG_Exam_Name_ComboBox.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        AECG_Exam_Name_ComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "<Select Exam Name>", "Midterm 1", "Midterm 2", "Final Exam" }));
-        AECG_Exam_Name_ComboBox.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        AECG_Exam_Name_ComboBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                AECG_Exam_Name_ComboBoxActionPerformed(evt);
-            }
-        });
-        AECG_Assign_Exam_Grade_Panel.add(AECG_Exam_Name_ComboBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(105, 70, 220, 40));
-
-        AECG_Exam_Weight_Field.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 25)); // NOI18N
-        AECG_Exam_Weight_Field.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-        AECG_Exam_Weight_Field.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), "EXAM WEIGHT (%)", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Yu Gothic UI Light", 0, 12))); // NOI18N
-        AECG_Assign_Exam_Grade_Panel.add(AECG_Exam_Weight_Field, new org.netbeans.lib.awtextra.AbsoluteConstraints(105, 130, 220, 50));
-
-        AECG_Score_Received_Field.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 25)); // NOI18N
-        AECG_Score_Received_Field.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-        AECG_Score_Received_Field.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), "SCORE RECEIVED (%)", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP, new java.awt.Font("Yu Gothic UI Light", 0, 12))); // NOI18N
-        AECG_Assign_Exam_Grade_Panel.add(AECG_Score_Received_Field, new org.netbeans.lib.awtextra.AbsoluteConstraints(105, 200, 220, 50));
-
-        AECG_Assign_Button.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        AECG_Assign_Button.setText("ASSIGN");
-        AECG_Assign_Button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        AECG_Assign_Button.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                AECG_Assign_ButtonActionPerformed(evt);
-            }
-        });
-        AECG_Assign_Exam_Grade_Panel.add(AECG_Assign_Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(333, 283, 90, 40));
-
-        AECG_Update_Button.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        AECG_Update_Button.setText("UPDATE");
-        AECG_Update_Button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        AECG_Update_Button.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                AECG_Update_ButtonActionPerformed(evt);
-            }
-        });
-        AECG_Assign_Exam_Grade_Panel.add(AECG_Update_Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(174, 283, 90, 40));
-
-        AECG_Delete_Button.setFont(new java.awt.Font("Yu Gothic UI Light", 0, 15)); // NOI18N
-        AECG_Delete_Button.setText("DELETE");
-        AECG_Delete_Button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        AECG_Delete_Button.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                AECG_Delete_ButtonActionPerformed(evt);
-            }
-        });
-        AECG_Assign_Exam_Grade_Panel.add(AECG_Delete_Button, new org.netbeans.lib.awtextra.AbsoluteConstraints(15, 283, 90, 40));
-
-        Admin_AECG_Right_Panel.add(AECG_Assign_Exam_Grade_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 355, 440, 335));
-
-        Admin_AECG_Panel.add(Admin_AECG_Right_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 0, 955, 700));
-
-        Main_Frame_Panel.add(Admin_AECG_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 1275, 700));
 
         Admin_SC_Panel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -4383,46 +4563,10 @@ public class MainFrame extends javax.swing.JFrame {
         Admin_SC_Panel.show();
     }//GEN-LAST:event_Admin_SC_img_LabelMouseClicked
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void SP_Calculate_GPA_ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SP_Calculate_GPA_ButtonActionPerformed
         // TODO add your handling code here:
-        int i = SP_GPA_Table.getSelectedRow();
-        TableModel model = SP_GPA_Table.getModel();
-        int nRow = SP_GPA_Table.getRowCount();
-        for(int x = 0; x < nRow; x++) {
-            int Units = Integer.parseInt(SP_GPA_Table.getValueAt(x, 2).toString());
-            int GradePoint = 0;
-            if(SP_GPA_Table.getValueAt(x, 3) == null)
-            {
-                GradePoint = 0;
-            }
-            else if(SP_GPA_Table.getValueAt(x, 3).equals("A"))
-            {
-                GradePoint = 4 * Units;
-            }
-            else if(SP_GPA_Table.getValueAt(x, 3).equals("B"))
-            {
-                GradePoint = 3 * Units;
-            }
-            else if(SP_GPA_Table.getValueAt(x, 3).equals("C"))
-            {
-                GradePoint = 2 * Units;
-            }
-            else if(SP_GPA_Table.getValueAt(x, 3).equals("D"))
-            {
-                GradePoint = 1 * Units;
-            }
-            else if(SP_GPA_Table.getValueAt(x, 3).equals("F"))
-            {
-                GradePoint = 0 * Units;
-            }
-            model.setValueAt(GradePoint, x, 4);
-        }
-        float GPA = (getTotalPoints()) / (getTotalCredits());
-        String GPA_Text = String.valueOf(GPA);
-        SP_GPA_Formula_Label.setText("Total Points (" + getTotalPoints() + ") / " + "Total Credits (" + getTotalCredits() + " )");
-        SP_GPA_Label.setText("GPA = " + GPA_Text);
-        SP_GPA_Table.getSelectionModel().clearSelection();
-    }//GEN-LAST:event_jButton1ActionPerformed
+        SP_CalculateGP();
+    }//GEN-LAST:event_SP_Calculate_GPA_ButtonActionPerformed
 
     private void SP_Course_Selection_ComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SP_Course_Selection_ComboBoxActionPerformed
         // TODO add your handling code here:
@@ -4737,8 +4881,11 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void AECG_Students_TableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_AECG_Students_TableMouseClicked
         // TODO add your handling code here:
+        Admin_AECG_ClearCourseGradesTable();
         AECG_ClearRegisteredCoursesTable();
         AECG_Show_RegisteredCourses();
+        Show_Course_Grades_Table();
+        AECG_CalculateGP();
     }//GEN-LAST:event_AECG_Students_TableMouseClicked
 
     private void AECG_Assign_ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AECG_Assign_ButtonActionPerformed
@@ -4850,6 +4997,48 @@ public class MainFrame extends javax.swing.JFrame {
         ShowExamGrades();
     }//GEN-LAST:event_AECG_Exam_Name_ComboBoxActionPerformed
 
+    private void AECG_Save_ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AECG_Save_ButtonActionPerformed
+        // TODO add your handling code here:
+        int s_row = AECG_Students_Table.getSelectedRow();
+        int nRow = AECG_Course_Grades_Table.getRowCount();
+        String AECG_StudentID = AECG_Students_Table.getModel().getValueAt(AECG_Students_Table.convertRowIndexToModel(s_row), 0).toString();
+        int result = JOptionPane.showConfirmDialog(null,"Sure you want to Assign Course Grades?", "Confirmation",
+               JOptionPane.YES_NO_OPTION,
+               JOptionPane.QUESTION_MESSAGE);
+        if(result == JOptionPane.YES_OPTION){
+            for (int i = 0; i < nRow; i++) {
+                String ClassID = AECG_Course_Grades_Table.getValueAt(i, 0).toString();
+                String LetterGrade = AECG_Course_Grades_Table.getValueAt(i, 3).toString();
+                conn = MySqlConnect.ConnectDB();
+                try {
+                    PreparedStatement updateLetterGrade = conn.prepareStatement("UPDATE registered_courses SET Grade = '"+LetterGrade+"' WHERE Student_ID = '"+AECG_StudentID+"' AND Class_ID = '"+ClassID+"'");
+                    updateLetterGrade.executeUpdate();
+                    conn.close();
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(rootPane, e);
+                }
+            }
+        }
+        else if (result == JOptionPane.NO_OPTION){
+               
+        } 
+        JOptionPane.showMessageDialog(null, "Course Grades Assigned Successfully");
+        AECG_CalculateGP();
+    }//GEN-LAST:event_AECG_Save_ButtonActionPerformed
+
+    private void SP_Reset_ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SP_Reset_ButtonActionPerformed
+        // TODO add your handling code here:
+        DefaultTableModel SP_GPAT = (DefaultTableModel)SP_GPA_Table.getModel();
+        while(SP_GPAT.getRowCount()>0){
+            for(int i = 0; i < SP_GPAT.getRowCount(); i++)
+            {
+                SP_GPAT.removeRow(i);
+            }
+        }
+        Show_GPA_Table();
+        SP_CalculateGP();
+    }//GEN-LAST:event_SP_Reset_ButtonActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -4901,9 +5090,11 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPanel AECG_Assign_Exam_Grade_Panel;
     private javax.swing.JLabel AECG_Assign_Exam_Grades_Header_Label;
     private javax.swing.JLabel AECG_Assign_Exam_Grades_Header_Label1;
+    private javax.swing.JTable AECG_Course_Grades_Table;
     private javax.swing.JButton AECG_Delete_Button;
     private javax.swing.JComboBox<String> AECG_Exam_Name_ComboBox;
     private javax.swing.JTextField AECG_Exam_Weight_Field;
+    private javax.swing.JScrollPane AECG_GPA_Table_ScrollPane;
     private javax.swing.JLabel AECG_Home_Button_Icon;
     private javax.swing.JLabel AECG_Home_Button_Label;
     private javax.swing.JPanel AECG_Home_Button_Panel;
@@ -4927,6 +5118,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel AECG_SF_Button_Icon;
     private javax.swing.JLabel AECG_SF_Button_Label;
     private javax.swing.JPanel AECG_SF_Button_Panel;
+    private javax.swing.JButton AECG_Save_Button;
     private javax.swing.JTextField AECG_Score_Received_Field;
     private javax.swing.JPanel AECG_Search_Button_Panel;
     private javax.swing.JLabel AECG_Search_Placeholder_Field;
@@ -5184,6 +5376,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel SF_img_Label;
     private javax.swing.JLabel SP_AA_Button_Icon;
     private javax.swing.JLabel SP_AA_Button_Label;
+    private javax.swing.JButton SP_Calculate_GPA_Button;
     private javax.swing.JLabel SP_Class_Standing_Heading_Label;
     public static final javax.swing.JLabel SP_Class_Standing_Label = new javax.swing.JLabel();
     private javax.swing.JLabel SP_Contact_Label;
@@ -5214,6 +5407,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPanel SP_Registered_Courses_Panel;
     private javax.swing.JTable SP_Registered_Courses_Table;
     private javax.swing.JScrollPane SP_Registered_Courses_Table_ScrollPane;
+    private javax.swing.JButton SP_Reset_Button;
     private javax.swing.JLabel SP_Residency_Status_Heading_Label;
     public static final javax.swing.JLabel SP_Residency_Status_Label = new javax.swing.JLabel();
     private javax.swing.JLabel SP_SCC_Button_Icon;
@@ -5254,7 +5448,6 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPanel Student_SRE_Panel;
     private javax.swing.JPanel Student_SRE_Right_Panel;
     private javax.swing.JLabel User_Img;
-    private javax.swing.JButton jButton1;
     // End of variables declaration//GEN-END:variables
 }
 // Round Panel
