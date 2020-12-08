@@ -10,9 +10,9 @@ package learning.management.system;
  * @author Haider Qazi (Chief Programmer), Daniel Gasperini (Backup Programmer), Javier Blanco (Programmer), David Dinh (Programmer), Christian Francois (Programming Secretary)
  */
 public class CoursesList {
-    public String Class_ID, Course_No, Course_Description, Room_No, Instructor_Name, Days_Time, Start_Date, End_Date;
+    public String Class_ID, Course_No, Course_Description, Room_No, Instructor_Name, Days_Time, Start_Date, End_Date, Units;
     
-    public CoursesList(String Class_ID, String Course_No, String Course_Description, String Room_No, String Instructor_Name, String Days_Time, String Start_Date, String End_Date){
+    public CoursesList(String Class_ID, String Course_No, String Course_Description, String Room_No, String Instructor_Name, String Days_Time, String Start_Date, String End_Date, String Units){
         this.Class_ID = Class_ID;
         this.Course_No = Course_No;
         this.Course_Description = Course_Description;
@@ -21,7 +21,7 @@ public class CoursesList {
         this.Days_Time = Days_Time;
         this.Start_Date = Start_Date;
         this.End_Date = End_Date;
-        //this.Units = Units;
+        this.Units = Units;
     }
 
        public String getClassID(){
@@ -48,7 +48,7 @@ public class CoursesList {
        public String getEndDate(){
            return End_Date;
        }
-       //public String getUnits(){
-       //    return Units;
-       //}
+       public String getUnits(){
+           return Units;
+       }
 }
