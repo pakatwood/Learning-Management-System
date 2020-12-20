@@ -11,14 +11,20 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.LayoutManager;
 import java.awt.RenderingHints;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import static learning.management.system.LoginFrame.LoggedInTime;
 
 /**
  *
  * @author Haider Qazi (Chief Programmer), Daniel Gasperini (Backup Programmer), Javier Blanco (Programmer), David Dinh (Programmer), Christian Francois (Programming Secretary)
  */
 public class LogoutFrame extends javax.swing.JFrame {
-
+    Connection conn = null;
     /**
      * Creates new form Logout
      */
@@ -151,7 +157,24 @@ public class LogoutFrame extends javax.swing.JFrame {
 
     private void Log_Out_Button_PanelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Log_Out_Button_PanelMouseClicked
         // TODO add your handling code here:
+        if (LoginFrame.User_Admin == false){
+            try{
+                Date currentDate = new Date();
+                SimpleDateFormat LoggedOut = new SimpleDateFormat("h:mm a");
+                String LoggedOutTime = LoggedOut.format(currentDate);
+                System.out.println(LoginFrame.Current_Student_ID);
+                System.out.println(LoginFrame.LoggedInTime);
+                System.out.println(LoginFrame.Date);
+                conn = MySqlConnect.ConnectDB();
+                PreparedStatement addLoggedOut = conn.prepareStatement("UPDATE login_history SET Logged_Out = '"+LoggedOutTime+"' WHERE Student_ID = '"+LoginFrame.Current_Student_ID+"' AND Logged_In = '"+LoginFrame.LoggedInTime+"' AND Date = '"+LoginFrame.Date+"'");
+                addLoggedOut.executeUpdate();
+                conn.close();
+            }catch (Exception e) {
+                JOptionPane.showMessageDialog(rootPane, e);
+            }
+        }
         System.exit(0);
+        
     }//GEN-LAST:event_Log_Out_Button_PanelMouseClicked
 
     /**

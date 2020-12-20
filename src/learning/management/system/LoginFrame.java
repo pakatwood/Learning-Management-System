@@ -8,10 +8,13 @@ import java.awt.HeadlessException;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
+import java.net.InetAddress;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import javax.swing.JOptionPane;
 import static learning.management.system.MainFrame.Admin_AECG_Discription_Label;
 import static learning.management.system.MainFrame.Admin_AECG_Name_Label;
@@ -45,6 +48,8 @@ public class LoginFrame extends javax.swing.JFrame {
     ResultSet rs = null;
     public static Boolean User_Admin = false;
     public static String Current_Student_ID;
+    public static String LoggedInTime;
+    public static String Date;
     
     /**
      * Creates new form LoginFrame
@@ -54,7 +59,6 @@ public class LoginFrame extends javax.swing.JFrame {
         Show_Password_Panel.setVisible(false);
         Hide_Password_Panel.setVisible(false);
     }
-    
     
     // Admin Login
     public void AdminLogin(){
@@ -124,9 +128,26 @@ public class LoginFrame extends javax.swing.JFrame {
                 } catch (Exception e) {
                     
                 }
-                MP_User_Name_Label.setText(rs.getString(2) + " " + rs.getString(3));
+                String Student_Name = rs.getString(2) + " " + rs.getString(3);
+
+                conn = MySqlConnect.ConnectDB();
+                    try{
+                        Date currentDate = new Date();
+                        SimpleDateFormat LoggedIn = new SimpleDateFormat("h:mm a");
+                        LoggedInTime = LoggedIn.format(currentDate);
+                        SimpleDateFormat date = new SimpleDateFormat("MM/dd/yyyy");
+                        Date = date.format(currentDate);
+                        InetAddress IP = InetAddress.getLocalHost();
+                        String IP_Address = IP.getHostAddress();
+                        PreparedStatement insert = conn.prepareStatement("INSERT INTO login_history (Student_ID, Student_Name, Logged_In, Date, IP_Address) VALUES ('"+Current_Student_ID+"', '"+Student_Name+"', '"+LoggedInTime+"', '"+Date+"', '"+IP_Address+"')");
+                        insert.executeUpdate();
+                        conn.close();
+                    }catch (Exception e) {
+                        JOptionPane.showMessageDialog(rootPane, e);
+                    }
+                MP_User_Name_Label.setText(Student_Name);
                 MP_Student_Discription_Label.setText("Student" + " | " + "University of Houston");
-                Student_Name_Label.setText(rs.getString(2) + " " + rs.getString(3));
+                Student_Name_Label.setText(Student_Name);
                 Student_Discription_Label.setText("Student" + " | " + "University of Houston");
                 SP_Student_ID_Label.setText(rs.getString(1));
                 SP_Student_Status_Label.setText(rs.getString(4));
@@ -139,7 +160,8 @@ public class LoginFrame extends javax.swing.JFrame {
                 rs.close();
             }
             else{
-                JOptionPane.showMessageDialog(null, "Invalid Username or Password", "Access Denied", JOptionPane.ERROR_MESSAGE);
+                //JOptionPane.showMessageDialog(null, "Invalid Username or Password", "Access Denied", JOptionPane.ERROR_MESSAGE);
+                Login_Message_Label.setText("Invalid User or Password!");
             } 
         } catch(HeadlessException | SQLException e){
             JOptionPane.showMessageDialog(null, e);
@@ -303,6 +325,11 @@ public class LoginFrame extends javax.swing.JFrame {
 
         Login_Form_Panel.add(Cancel_Button_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(182, 195, 100, 40));
 
+        Login_Message_Label.setFont(new java.awt.Font("Yu Gothic UI Light", 1, 10)); // NOI18N
+        Login_Message_Label.setForeground(new java.awt.Color(204, 0, 0));
+        Login_Message_Label.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        Login_Form_Panel.add(Login_Message_Label, new org.netbeans.lib.awtextra.AbsoluteConstraints(107, 0, 170, 30));
+
         login_Panel.add(Login_Form_Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 0, 308, 250));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -450,6 +477,7 @@ public class LoginFrame extends javax.swing.JFrame {
     private javax.swing.JLabel Login_Button_Icon;
     private javax.swing.JPanel Login_Button_Panel;
     private javax.swing.JPanel Login_Form_Panel;
+    public static final javax.swing.JLabel Login_Message_Label = new javax.swing.JLabel();
     private javax.swing.JPasswordField Password_Field;
     private javax.swing.JLabel Show_Password_Icon;
     private javax.swing.JPanel Show_Password_Panel;
